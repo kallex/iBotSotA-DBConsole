@@ -1,2 +1,2 @@
-# iBotSotA-TimeseriesConsole
-iBotSotA Game Supporting Systems - Timeseries Console tool.
+# iBotSotA-DBConsole
+iBotSotA Game Supporting Systems - Database Console tool.
