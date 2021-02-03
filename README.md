@@ -1,2 +1,2 @@
-# iBotSotA-DBConsole
-iBotSotA Game Supporting Systems - Database Console tool.
+# iBotSotA-DataService
+iBotSotA Game Supporting Systems - Database Services
