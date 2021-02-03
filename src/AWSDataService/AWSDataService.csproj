@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.5.4.24" />
+    <PackageReference Include="AWSSDK.TimestreamQuery" Version="3.5.1.24" />
+    <PackageReference Include="AWSSDK.TimestreamWrite" Version="3.5.1.23" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataServiceCore\DataServiceCore.csproj" />
+  </ItemGroup>
+
+</Project>

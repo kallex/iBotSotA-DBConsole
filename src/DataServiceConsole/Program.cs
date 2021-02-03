@@ -1,12 +1,22 @@
 ﻿using System;
+using System.CommandLine;
+using System.Threading.Tasks;
+using AWSDataService;
+using DryIoc;
 
-namespace TimeseriesConsole
+namespace DataServiceConsole
 {
     class Program
     {
-        static void Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
+            using var container = new Container();
+
+            container.Register<DynamoDBDataService>(Reuse.Singleton);
+            container.Register<TimestreamDataService>(Reuse.Singleton);
+
             Console.WriteLine("Hello World!");
+            return 0;
         }
     }
 }
