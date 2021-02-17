@@ -6,11 +6,12 @@ namespace InfraSetup
 {
     public class ResourceGroupStack
     {
-        public static void Setup(Stack stack)
+        public static void Setup(Stack stack, EnvironmentDetails envDetails)
         {
-            var resourceGroup = new CfnGroup(stack, "ibotsota-resourcegroup", new CfnGroupProps()
+            var idName = $"{envDetails.AppPrefix}-resourceGrp-{envDetails.EnvSuffix}";
+            var resourceGroup = new CfnGroup(stack, idName, new CfnGroupProps()
             {
-                Name = "ibotsota-resourcegroup",
+                Name = idName,
             });
         }
     }

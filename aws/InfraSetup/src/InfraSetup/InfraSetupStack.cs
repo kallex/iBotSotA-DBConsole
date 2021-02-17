@@ -2,14 +2,28 @@ using Amazon.CDK;
 
 namespace InfraSetup
 {
+    public enum EnvironmentType
+    {
+        Undefined = 0,
+        Dev,
+        Beta,
+        Prod,
+    }
+    public class EnvironmentDetails
+    {
+        public EnvironmentType Type;
+        public string AppPrefix;
+        public string EnvSuffix;
+    }
+
     public class InfraSetupStack : Stack
     {
-        internal InfraSetupStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal InfraSetupStack(Construct scope, string id, EnvironmentDetails envDetails, IStackProps props = null) : base(scope, id, props)
         {
-            ResourceGroupStack.Setup(this);
-            S3Stack.Setup(this);
-            TimestreamStack.Setup(this);
-            DynamoDBStack.Setup(this);
+            ResourceGroupStack.Setup(this, envDetails);
+            S3Stack.Setup(this, envDetails);
+            TimestreamStack.Setup(this, envDetails);
+            DynamoDBStack.Setup(this, envDetails);
         }
     }
 }

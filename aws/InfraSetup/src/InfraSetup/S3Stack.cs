@@ -5,12 +5,12 @@ namespace InfraSetup
 {
     public static class S3Stack
     {
-        public static void Setup(Stack stack)
+        public static void Setup(Stack stack, EnvironmentDetails envDetails)
         {
-            var id = "ibotsota-bucket";
-            var bucket = new Bucket(stack, id, new BucketProps()
+            var idName = $"{envDetails.AppPrefix}-s3-{envDetails.EnvSuffix}";
+            var bucket = new Bucket(stack, idName, new BucketProps()
             {
-                BucketName = "ibotsota-s3",
+                BucketName = idName,
                 BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
             });
         }

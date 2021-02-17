@@ -5,11 +5,11 @@ namespace InfraSetup
 {
     public static class TimestreamStack
     {
-        public static void Setup(Stack stack)
+        public static void Setup(Stack stack, EnvironmentDetails envDetails)
         {
-            var id = "ibotsota";
-            var databaseName = id;
-            new CfnDatabase(stack, id, new CfnDatabaseProps()
+            var idName = $"{envDetails.AppPrefix}-stats-{envDetails.EnvSuffix}";
+            var databaseName = idName;
+            new CfnDatabase(stack, idName, new CfnDatabaseProps()
             {
                 DatabaseName = databaseName,
             });
