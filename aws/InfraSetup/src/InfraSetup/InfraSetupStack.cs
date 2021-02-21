@@ -6,6 +6,7 @@ namespace InfraSetup
     {
         Undefined = 0,
         Dev,
+        Test,
         Beta,
         Prod,
     }
@@ -16,19 +17,14 @@ namespace InfraSetup
         public string EnvSuffix;
     }
 
-
     public class InfraSetupStack : Stack
     {
         internal InfraSetupStack(Construct scope, string id, EnvironmentDetails envDetails, IStackProps props = null) : base(scope, id, props)
         {
-            StackDependency dependencyInfo = new StackDependency();
-
             ResourceGroupStack.Setup(this, envDetails);
             S3Stack.Setup(this, envDetails);
             TimestreamStack.Setup(this, envDetails);
             DynamoDBStack.Setup(this, envDetails);
-            APIGatewayStack.Setup(this, envDetails);
-            LambdaStack.Setup(this, dependencyInfo, envDetails);
         }
     }
 }

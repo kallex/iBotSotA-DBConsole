@@ -2,9 +2,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Amazon.CDK;
 using Amazon.CDK.AWS.Lambda;
-using Amazon.CDK.AWS.S3;
 
-namespace InfraSetup
+namespace RuntimeSetup
 {
     public class LambdaStack
     {

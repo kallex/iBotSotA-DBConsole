@@ -1,4 +1,4 @@
-namespace InfraSetup
+namespace RuntimeSetup
 {
     public class StackDependency
     {
