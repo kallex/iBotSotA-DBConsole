@@ -6,6 +6,7 @@ namespace InfraSetup
     {
         Undefined = 0,
         Dev,
+        Test,
         Beta,
         Prod,
     }
