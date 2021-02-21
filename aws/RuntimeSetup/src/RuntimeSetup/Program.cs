@@ -17,9 +17,9 @@ namespace RuntimeSetup
                 Env = env
             };
             var appName = "ibotsota";
-            new RuntimeSetupStack(app, "DevRuntime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "dev", Type = EnvironmentType.Dev }, stackProps);
-            new RuntimeSetupStack(app, "TestRuntime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "test", Type = EnvironmentType.Test }, stackProps);
-            new RuntimeSetupStack(app, "BetaRuntime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "beta", Type = EnvironmentType.Beta }, stackProps);
+            new RuntimeSetupStack(app, "iBotSotA-dev-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "dev", Type = EnvironmentType.Dev }, stackProps);
+            new RuntimeSetupStack(app, "iBotSotA-test-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "test", Type = EnvironmentType.Test }, stackProps);
+            new RuntimeSetupStack(app, "iBotSotA-beta-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "beta", Type = EnvironmentType.Beta }, stackProps);
             app.Synth();
         }
         private static Environment getEnvironment()
