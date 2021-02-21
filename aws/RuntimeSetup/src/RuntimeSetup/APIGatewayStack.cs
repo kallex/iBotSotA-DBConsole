@@ -1,6 +1,6 @@
 using Amazon.CDK;
 
-namespace InfraSetup
+namespace RuntimeSetup
 {
     public static class APIGatewayStack
     {
