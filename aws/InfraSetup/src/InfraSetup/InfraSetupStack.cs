@@ -5,6 +5,8 @@ namespace InfraSetup
     public enum EnvironmentType
     {
         Undefined = 0,
+        DevOps,
+        //Common,
         Dev,
         Test,
         Beta,

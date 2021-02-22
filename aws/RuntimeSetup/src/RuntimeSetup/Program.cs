@@ -1,6 +1,7 @@
 ﻿using Amazon.CDK;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Environment = Amazon.CDK.Environment;
 

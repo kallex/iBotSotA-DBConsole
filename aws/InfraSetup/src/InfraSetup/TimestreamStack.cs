@@ -1,4 +1,5 @@
 using Amazon.CDK;
+using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Timestream;
 
 namespace InfraSetup
@@ -7,6 +8,9 @@ namespace InfraSetup
     {
         public static void Setup(Stack stack, EnvironmentDetails envDetails)
         {
+            if (envDetails.Type == EnvironmentType.DevOps)
+                return;
+
             var idName = $"{envDetails.AppPrefix}-stats-{envDetails.EnvSuffix}";
             var databaseName = idName;
             new CfnDatabase(stack, idName, new CfnDatabaseProps()
