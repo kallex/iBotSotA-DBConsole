@@ -1,3 +1,6 @@
+using System;
+using System.Diagnostics;
+using System.Linq;
 using Amazon.CDK;
 
 namespace RuntimeSetup
@@ -19,12 +22,16 @@ namespace RuntimeSetup
 
     public class RuntimeSetupStack : Stack
     {
+        private string[] ValidBuildNumberPrefixes = new[] {"dev", "test", "beta"};
+
         internal RuntimeSetupStack(Construct scope, string id, EnvironmentDetails envDetails, IStackProps props = null) : base(scope, id, props)
         {
             StackDependency dependencyInfo = new StackDependency();
+            //var value = buildNumberParameter.Resolve(scope.Node.)
+            var buildNumber = System.Environment.GetEnvironmentVariable("BUILD_NUMBER");
 
-            APIGatewayStack.Setup(this, envDetails);
-            LambdaStack.Setup(this, dependencyInfo, envDetails);
+            var lambdaFunction = LambdaStack.Setup(this, dependencyInfo, envDetails, buildNumber);
+            var api = APIGatewayStack.Setup(this, envDetails, lambdaFunction);
 
             // The code that defines your stack goes here
         }

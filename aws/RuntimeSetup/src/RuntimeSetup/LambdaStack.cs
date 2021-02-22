@@ -1,37 +1,44 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Amazon.CDK;
 using Amazon.CDK.AWS.Lambda;
+using Amazon.CDK.AWS.S3;
 
 namespace RuntimeSetup
 {
     public class LambdaStack
     {
-        public static void Setup(Stack stack, StackDependency stackDependency, EnvironmentDetails envDetails)
+        public static Function Setup(Stack stack, StackDependency stackDependency, EnvironmentDetails envDetails,
+            string buildNumber)
         {
-            /*
             var idName = $"{envDetails.AppPrefix}-AspNetCore-{envDetails.EnvSuffix}";
-            var lambdaBucketIdName = $"{envDetails.AppPrefix}-lambda-{envDetails}";
 
-            var bucket = new Bucket(stack, lambdaBucketIdName, new BucketProps()
+            var envName = envDetails.EnvSuffix;
+
+            if (buildNumber?.StartsWith(envName) == false)
             {
-                BucketName = lambdaBucketIdName,
-                BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
-                PublicReadAccess = false,
-                RemovalPolicy = RemovalPolicy.DESTROY,
-            });
+                throw new ArgumentException($"Build number '{buildNumber}' does not match with environment '{envName}'");
+            }
 
+            buildNumber = "BUILD_NUMBER";
+
+            var lambdaPackageKey = $"{envName}/iBotSotALambda_{buildNumber}.zip";
+
+            string devopsbucketIdName = "ibotsota-devops";
+            var bucket = Bucket.FromBucketName(stack, devopsbucketIdName, devopsbucketIdName);
             var function = new Function(stack, idName, new FunctionProps()
             {
                 Environment = new Dictionary<string, string>()
                 {
                     { "Environment", envDetails.EnvSuffix }
                 },
-                AllowAllOutbound = true,
-                Code = S3Code.FromBucket()
-                
+                Runtime = Runtime.DOTNET_CORE_3_1,
+                Code = Code.FromBucket(bucket, lambdaPackageKey),
+                Handler = "iBotSotALambda::iBotSotALambda.LambdaEntryPoint::FunctionHandlerAsync",
             });
-            */
+
+            return function;
         }
         
     }

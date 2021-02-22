@@ -8,6 +8,8 @@ namespace InfraSetup
     {
         public static void Setup(Stack stack, EnvironmentDetails envDetails)
         {
+            if (envDetails.Type == EnvironmentType.DevOps)
+                return;
             var tableItems = new[] {(tableName: "Account", partitionKeyName:"AccountID")};
             foreach (var tableItem in tableItems)
             {
@@ -23,7 +25,8 @@ namespace InfraSetup
                         Type = AttributeType.STRING,
                         Name = partitionKeyName
                     },
-                    BillingMode = BillingMode.PROVISIONED
+                    BillingMode = BillingMode.PROVISIONED,
+                    RemovalPolicy = RemovalPolicy.RETAIN
                 });
             }
         }
