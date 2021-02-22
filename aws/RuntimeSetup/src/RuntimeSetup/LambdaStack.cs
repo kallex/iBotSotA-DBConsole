@@ -16,12 +16,14 @@ namespace RuntimeSetup
 
             var envName = envDetails.EnvSuffix;
 
+            /*
             if (buildNumber?.StartsWith(envName) == false)
             {
                 throw new ArgumentException($"Build number '{buildNumber}' does not match with environment '{envName}'");
             }
+            */
 
-            buildNumber = "BUILD_NUMBER";
+            buildNumber ??= "BUILD_NUMBER";
 
             var lambdaPackageKey = $"{envName}/iBotSotALambda_{buildNumber}.zip";
 
