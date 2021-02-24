@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AWSDataService;
+using DataServiceCore;
+using DryIoc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +22,24 @@ namespace iBotSotALambda
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            try
+            {
+                using var container = new Container();
+
+                //container.Register<DynamoDBDataService>(Reuse.Singleton);
+                //container.Register<TimestreamDataService>(Reuse.Singleton);
+                container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+
+                var steamService = container.Resolve<ISteamService>();
+
+            }
+            catch (Exception ex)
+            {
+                SteamService.SteamService.AccountId = ex.ToString();
+            }
+
+
         }
 
         public static IConfiguration Configuration { get; private set; }
@@ -48,7 +69,7 @@ namespace iBotSotALambda
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now}");
+                    await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now} - {SteamService.SteamService.AccountId}");
                 });
             });
         }

@@ -9,5 +9,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="5.3.0" />
+    <PackageReference Include="DryIoc.dll" Version="4.7.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AWSDataService\AWSDataService.csproj" />
+    <ProjectReference Include="..\DataServiceCore\DataServiceCore.csproj" />
+    <ProjectReference Include="..\SteamService\SteamService.csproj" />
   </ItemGroup>
 </Project>
