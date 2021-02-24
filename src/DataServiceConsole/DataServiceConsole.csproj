@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AWSDataService\AWSDataService.csproj" />
     <ProjectReference Include="..\DataServiceCore\DataServiceCore.csproj" />
+    <ProjectReference Include="..\SteamService\SteamService.csproj" />
   </ItemGroup>
 
 </Project>

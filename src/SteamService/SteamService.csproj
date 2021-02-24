@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="steam_api64.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="steam_api64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataServiceCore\DataServiceCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="SteamService.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
+  <Import Project="packagerefs_win64.targets" Condition=" '$(LINUX_BUILD)' != 'true' " />
+  <Import Project="packagerefs_linux64.targets" Condition=" '$(LINUX_BUILD)' == 'true' " />
+
+</Project>
