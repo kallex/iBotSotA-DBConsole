@@ -19,6 +19,8 @@ namespace iBotSotALambda
 {
     public class Startup
     {
+        public static string SteamServiceState;
+        private const uint AppId = 1518060;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -32,11 +34,12 @@ namespace iBotSotALambda
                 container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
 
                 var steamService = container.Resolve<ISteamService>();
-
+                steamService.InitService(AppId);
+                SteamServiceState = "OK";
             }
             catch (Exception ex)
             {
-                SteamService.SteamService.AccountId = ex.ToString();
+                SteamServiceState = ex.ToString();
             }
 
 
@@ -69,7 +72,7 @@ namespace iBotSotALambda
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now} - {SteamService.SteamService.AccountId}");
+                    await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now} - {SteamServiceState}");
                 });
             });
         }
