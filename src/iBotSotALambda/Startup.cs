@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Amazon;
 using AWSDataService;
 using DataServiceCore;
 using DryIoc;
@@ -20,13 +22,25 @@ namespace iBotSotALambda
     public class Startup
     {
         public static string SteamServiceState;
-        private const uint AppId = 1518060;
+        public static uint SteamAppId;
+        public static string SteamWebApiKey;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
 
             try
             {
+                var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
+                var asyncTask = Task.Run(async () =>
+                {
+                    var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
+                    var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
+                    SteamAppId = uint.Parse(steamAppId);
+                    SteamWebApiKey = steamWebApiKey;
+                });
+
+                asyncTask.Wait();
+
                 using var container = new Container();
 
                 //container.Register<DynamoDBDataService>(Reuse.Singleton);
@@ -34,7 +48,7 @@ namespace iBotSotALambda
                 container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
 
                 var steamService = container.Resolve<ISteamService>();
-                steamService.InitService(AppId);
+                steamService.InitService(SteamAppId, SteamWebApiKey);
                 SteamServiceState = "OK";
             }
             catch (Exception ex)
