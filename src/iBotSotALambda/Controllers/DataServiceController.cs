@@ -94,12 +94,13 @@ namespace iBotSotALambda.Controllers
 
 
         [HttpGet("{authDataHex}")]
-        public async Task<string> AuthTestNamed(string authDataHex)
+        public async Task<string> AuthTestNamedPartial(string authDataHex)
         {
             string statusMessage = "";
             bool authenticated = false;
             try
             {
+                /*
                 var rules = DryIoc.Rules.Default
                     .With(DryIoc.FactoryMethod.ConstructorWithResolvableArguments)
                     .WithFactorySelector(DryIoc.Rules.SelectLastRegisteredFactory())
@@ -113,6 +114,7 @@ namespace iBotSotALambda.Controllers
                 steamService.InitService(Startup.SteamAppId, Startup.SteamWebApiKey);
                 authenticated = await steamService.ValidateAuthTokenWeb(authDataHex);
                 statusMessage = "OK";
+                */
             }
             catch (Exception ex)
             {
