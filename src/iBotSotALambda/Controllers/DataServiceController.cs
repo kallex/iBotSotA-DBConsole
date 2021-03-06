@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Threading.Tasks;
 using DataServiceCore;
 using DryIoc;
@@ -29,8 +30,28 @@ namespace iBotSotALambda.Controllers
         [HttpGet("{arg}")]
         public string TestGet(int arg)
         {
-            return $"arg: {arg}";
+            var now = DateTime.Now;
+            return $"Now: {now} Arg: {arg}";
         }
+
+        [HttpGet("{arg}")]
+        public async Task<string> TestXGetAsync(int arg)
+        {
+            var now = DateTime.Now;
+            return $"Now: {now} Arg: {arg}";
+        }
+
+
+        [HttpGet("{arg}")]
+        public async Task TestGetAsyncStream(int arg)
+        {
+            var now = DateTime.Now;
+            var result = $"Now: {now} Arg: {arg}";
+            var data = Encoding.UTF8.GetBytes(result);
+            await Response.Body.WriteAsync(data);
+            Response.StatusCode = 200;
+        }
+
 
         [HttpGet]
         public async Task<string> AuthTestString(string authDataHex)
