@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Amazon;
+using Amazon.XRay.Recorder.Core;
 using AWSDataService;
 using DataServiceCore;
 using DryIoc;
@@ -50,13 +51,15 @@ namespace iBotSotALambda
                 var steamService = container.Resolve<ISteamService>();
                 steamService.InitService(SteamAppId, SteamWebApiKey);
                 SteamServiceState = "OK";
+
             }
             catch (Exception ex)
             {
                 SteamServiceState = ex.ToString();
             }
 
-
+            AWSXRayRecorder recorder = new AWSXRayRecorderBuilder().Build();
+            AWSXRayRecorder.InitializeInstance(recorder: recorder);
         }
 
         public static IConfiguration Configuration { get; private set; }
@@ -70,6 +73,8 @@ namespace iBotSotALambda
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseXRay("iBotSotA");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -89,6 +94,7 @@ namespace iBotSotALambda
                     await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now} - {SteamServiceState}");
                 });
             });
+
         }
     }
 }

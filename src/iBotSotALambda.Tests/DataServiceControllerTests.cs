@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.APIGateway;
@@ -95,6 +96,11 @@ namespace iBotSotALambda.Tests
 
             steamService.InitSteamClient();
             var authData = await steamService.GetAuthTokenA();
+
+            using var httpClient = new HttpClient();
+            var authDataHex = authData.authToken.ToHexString();
+            var url = $"{LambdaEndpointUrl}/api/DataService/AuthTest?authDataHex={authDataHex}";
+            var response = await httpClient.GetAsync(url);
 
             /*
             var controller = new DataServiceController();
