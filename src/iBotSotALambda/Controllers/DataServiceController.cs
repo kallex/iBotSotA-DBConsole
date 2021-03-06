@@ -46,10 +46,10 @@ namespace iBotSotALambda.Controllers
         public async Task TestGetAsyncStream(int arg)
         {
             var now = DateTime.Now;
-            var result = $"Now: {now} Arg: {arg}";
+            var result = $"{nameof(TestGetAsyncStream)} Now: {now} Arg: {arg}";
             var data = Encoding.UTF8.GetBytes(result);
             await Response.Body.WriteAsync(data);
-            Response.StatusCode = 200;
+            //Response.StatusCode = 200;
         }
 
 
