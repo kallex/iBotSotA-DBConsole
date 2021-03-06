@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using DataServiceCore;
@@ -52,19 +53,11 @@ namespace iBotSotALambda.Controllers
             //Response.StatusCode = 200;
         }
 
-        [HttpGet("{arg}")]
-        public async Task<string> AuthTestArgEmpty(string arg)
-        {
-            var now = DateTime.Now;
-            return $"Now: {now} Arg: {arg}";
-        }
-
 
         [HttpGet("{arg}")]
-        public async Task<string> AuthTestArg(string arg)
+        public async Task<string> DiagTest(string arg)
         {
             string statusMessage = "";
-            bool authenticated = false;
             try
             {
                 /*
@@ -82,13 +75,21 @@ namespace iBotSotALambda.Controllers
                 authenticated = await steamService.ValidateAuthTokenWeb(arg);
                 statusMessage = "OK";
                 */
+                if (!arg.StartsWith("nop"))
+                {
+                    using var httpClient = new HttpClient();
+                    var fullUrl = $"https://{arg}";
+                    var response = await httpClient.GetAsync(fullUrl);
+                    var statusCode = response.StatusCode;
+                    statusMessage = $"Response status for {fullUrl} was {statusCode}";
+                }
             }
             catch (Exception ex)
             {
                 statusMessage = ex.ToString();
             }
 
-            var result = $"Authenticated: {authenticated} - Status: {statusMessage}";
+            var result = $"Diagtest {DateTime.Now}: Status: {statusMessage}";
             return result;
         }
 
