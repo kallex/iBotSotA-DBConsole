@@ -121,7 +121,7 @@ namespace iBotSotALambda.Controllers
                 statusMessage = "Error catched.";
             }
 
-            var result = $"Authenticated: {authenticated} - Status: {statusMessage}";
+            var result = $"AuthData: {authDataHex} Authenticated: {authenticated} - Status: {statusMessage}";
             return result;
         }
 
