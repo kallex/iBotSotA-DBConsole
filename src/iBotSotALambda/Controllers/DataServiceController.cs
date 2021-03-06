@@ -108,14 +108,11 @@ namespace iBotSotALambda.Controllers
                 this.Container = new DryIoc.Container(rules);
                 Container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
 
-                /*
-
-                //var steamService = Container.Resolve<ISteamService>();
-                var steamService = (ISteamService) new SteamService.SteamService();
+                var steamService = Container.Resolve<ISteamService>();
+                //var steamService = (ISteamService) new SteamService.SteamService();
                 steamService.InitService(Startup.SteamAppId, Startup.SteamWebApiKey);
-                authenticated = await steamService.ValidateAuthTokenWeb(authDataHex);
-                statusMessage = "OK";
-                */
+                //authenticated = await steamService.ValidateAuthTokenWeb(authDataHex);
+                statusMessage = "OK (not)";
             }
             catch (Exception ex)
             {
