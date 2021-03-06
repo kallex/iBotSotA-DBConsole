@@ -12,6 +12,11 @@ namespace RuntimeSetup
             var api = new LambdaRestApi(stack, apiIdName, new LambdaRestApiProps()
             {
                 Handler = lambdaFunction,
+                DeployOptions = new StageOptions()
+                {
+                    StageName = envDetails.EnvSuffix,
+                    TracingEnabled = true,
+                }
             });
 
             return api;

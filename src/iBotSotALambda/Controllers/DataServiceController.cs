@@ -116,7 +116,7 @@ namespace iBotSotALambda.Controllers
             }
             catch (Exception ex)
             {
-                statusMessage = ex.ToString();
+                statusMessage = "Error catched.";
             }
 
             var result = $"Authenticated: {authenticated} - Status: {statusMessage}";
