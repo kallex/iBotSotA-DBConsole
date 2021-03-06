@@ -120,21 +120,11 @@ namespace iBotSotALambda.Tests
 
             using var httpClient = new HttpClient();
             var authDataHex = authData.authToken.ToHexString();
-            var url = $"{LambdaEndpointUrl}/api/DataService/AuthTest?authDataHex={authDataHex}";
+            var url = $"{LambdaEndpointUrl}/api/DataService/AuthTestString?authDataHex={authDataHex}";
             var response = await httpClient.GetAsync(url);
-
-            /*
-            var controller = new DataServiceController();
-            var authDataHex = authData.authToken.ToHexString();
-            //var result = (JsonResult) await controller.AuthTest(authData.steamIdValue, authDataHex);
-            var result = (JsonResult)await controller.AuthTest(authDataHex);
-            var expected = new JsonResult(new
-            {
-                statusMessage = "OK",
-                authenticated = true
-            });
-            */
-            //Assert.Equal(expected.Value, result.Value);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith("Authenticated: True", content);
+            Assert.EndsWith("Status: OK", content);
         }
 
 
@@ -155,7 +145,7 @@ namespace iBotSotALambda.Tests
 
             var restApis = await apiGateway.GetRestApisAsync(new GetRestApisRequest());
             var devApi = restApis.Items.Single(item => item.Name.EndsWith("-dev"));
-            var lambdaEndpointUrl = $"https://{devApi.Id}.execute-api.{region.SystemName}.amazonaws.com/prod";
+            var lambdaEndpointUrl = $"https://{devApi.Id}.execute-api.{region.SystemName}.amazonaws.com/dev";
             LambdaEndpointUrl = lambdaEndpointUrl;
         }
 

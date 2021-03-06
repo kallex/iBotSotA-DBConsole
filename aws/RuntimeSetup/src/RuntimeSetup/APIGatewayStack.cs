@@ -16,7 +16,7 @@ namespace RuntimeSetup
                 {
                     StageName = envDetails.EnvSuffix,
                     TracingEnabled = true,
-                }
+                },
             });
 
             return api;
