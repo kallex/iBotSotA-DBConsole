@@ -9,7 +9,6 @@ namespace iBotSotALambda.Controllers
     [Route("api/[controller]/[action]")]
     public class DataServiceController : ControllerBase
     {
-        private const uint SteamAppId = 1518060;
         public DataServiceController()
         {
         }
@@ -25,6 +24,12 @@ namespace iBotSotALambda.Controllers
 
             //steamService.InitService();
             //var authToken = steamService.GetAuthTokenA();
+        }
+
+        [HttpGet("{arg}")]
+        public string TestGet(int arg)
+        {
+            return $"arg: {arg}";
         }
 
         [HttpGet]
