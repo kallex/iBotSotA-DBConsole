@@ -12,13 +12,6 @@ namespace iBotSotALambda.Controllers
         private const uint SteamAppId = 1518060;
         public DataServiceController()
         {
-            var rules = DryIoc.Rules.Default
-                .With(DryIoc.FactoryMethod.ConstructorWithResolvableArguments)
-                .WithFactorySelector(DryIoc.Rules.SelectLastRegisteredFactory())
-                .WithTrackingDisposableTransients();
-
-            this.Container = new DryIoc.Container(rules);
-            Container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
         }
 
         public Container Container { get; set; }
@@ -41,6 +34,15 @@ namespace iBotSotALambda.Controllers
             bool authenticated = false;
             try
             {
+                var rules = DryIoc.Rules.Default
+                    .With(DryIoc.FactoryMethod.ConstructorWithResolvableArguments)
+                    .WithFactorySelector(DryIoc.Rules.SelectLastRegisteredFactory())
+                    .WithTrackingDisposableTransients();
+
+                this.Container = new DryIoc.Container(rules);
+                Container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+
+
                 var steamService = Container.Resolve<ISteamService>();
                 steamService.InitService(Startup.SteamAppId, Startup.SteamWebApiKey);
                 authenticated = await steamService.ValidateAuthTokenWeb(authDataHex);

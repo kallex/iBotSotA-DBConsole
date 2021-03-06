@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon;
+using Amazon.APIGateway;
+using Amazon.APIGateway.Model;
 using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.TestUtilities;
@@ -17,6 +20,7 @@ namespace iBotSotALambda.Tests
     {
         private uint SteamAppId;
         private string SteamWebApiKey;
+        private string LambdaEndpointUrl;
 
         [Fact]
         public async Task SelfAuthenticationTest()
@@ -80,6 +84,33 @@ namespace iBotSotALambda.Tests
             Assert.Equal(expected.Value, result.Value);
         }
 
+        [Fact]
+        public async Task DevServerAuthenticateTest()
+        {
+            var container = new Container();
+            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+
+            steamService.InitSteamClient();
+            var authData = await steamService.GetAuthTokenA();
+
+            /*
+            var controller = new DataServiceController();
+            var authDataHex = authData.authToken.ToHexString();
+            //var result = (JsonResult) await controller.AuthTest(authData.steamIdValue, authDataHex);
+            var result = (JsonResult)await controller.AuthTest(authDataHex);
+            var expected = new JsonResult(new
+            {
+                statusMessage = "OK",
+                authenticated = true
+            });
+            */
+            //Assert.Equal(expected.Value, result.Value);
+        }
+
+
         public async Task InitializeAsync()
         {
             var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
@@ -87,6 +118,18 @@ namespace iBotSotALambda.Tests
             var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
             SteamAppId = uint.Parse(steamAppId);
             SteamWebApiKey = steamWebApiKey;
+
+            var region = RegionEndpoint.EUWest1;
+
+            AmazonAPIGatewayClient apiGateway = new AmazonAPIGatewayClient(new AmazonAPIGatewayConfig()
+            {
+                RegionEndpoint = region
+            });
+
+            var restApis = await apiGateway.GetRestApisAsync(new GetRestApisRequest());
+            var devApi = restApis.Items.Single(item => item.Name.EndsWith("-dev"));
+            var lambdaEndpointUrl = $"https://{devApi.Id}.execute-api.{region.SystemName}.amazonaws.com/prod";
+            LambdaEndpointUrl = lambdaEndpointUrl;
         }
 
         public async Task DisposeAsync()
