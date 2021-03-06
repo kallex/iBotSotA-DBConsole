@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using DataServiceCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SteamWebAPI2.Utilities;
 using Steamworks;
 
@@ -67,12 +69,35 @@ namespace SteamService
             }
         }
 
-        async Task<bool> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
+        async Task<(bool authenticated, ulong steamid, ulong ownersteamid, bool vacbanned, bool publishedbanned)> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
         {
+            /*
             var webInterfaceFactory = new SteamWebInterfaceFactory(SteamWebApiKey);
             var userInterface = webInterfaceFactory.CreateSteamWebInterface<SteamWebAPI2.Interfaces.SteamUserAuth>(HttpClient);
             var authResult = await userInterface.AuthenticateUserTicket(AppId, authTokenHex);
             return authResult.Data.Response.Success;
+            */
+            using var httpClient = new HttpClient();
+
+            var url = $"https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key={SteamWebApiKey}&appid={AppId}&ticket={authTokenHex}";
+            var response = await httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            var json = (JObject) JsonConvert.DeserializeObject(content);
+            var responseData = json["response"]["params"];
+
+            var authenticated = responseData["result"]?.ToString() == "OK";
+            var steamIdStr = responseData["steamid"]?.ToString() ?? "0";
+            if (!ulong.TryParse(steamIdStr, out var steamid))
+                steamid = 0;
+            var ownerSteamIdStr = responseData["ownersteamid"]?.ToString() ?? "0";
+            if (!ulong.TryParse(ownerSteamIdStr, out var ownersteamid))
+                ownersteamid = 0;
+
+            var vacbanned = responseData["vacbanned"]?.ToString() == "true";
+            var publishedBanned = responseData["publisherbanned"]?.ToString() == "true";
+
+            var result = (authenticated, steamid, ownersteamid, vacbanned, publishedBanned);
+            return result;
         }
     }
 }

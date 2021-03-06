@@ -130,7 +130,7 @@ namespace iBotSotALambda.Controllers
         public async Task<string> AuthTestString(string authDataHex)
         {
             string statusMessage = "";
-            bool authenticated = false;
+            (bool authenticated, ulong steamid, ulong ownersteamid, bool vacbanned, bool publishedbanned) authenticated = default;
             try
             {
                 var rules = DryIoc.Rules.Default
@@ -152,7 +152,7 @@ namespace iBotSotALambda.Controllers
                 statusMessage = ex.ToString();
             }
 
-            var result = $"Authenticated: {authenticated} - Status: {statusMessage}";
+            var result = $"Authenticated: {authenticated.authenticated} - SteamID: {authenticated.steamid} - Status: {statusMessage}";
             return result;
         }
 
@@ -161,7 +161,7 @@ namespace iBotSotALambda.Controllers
         public async Task<ActionResult> AuthTest([FromQuery] string authDataHex)
         {
             string statusMessage = "";
-            bool authenticated = false;
+            (bool authenticated, ulong steamid, ulong ownersteamid, bool vacbanned, bool publishedbanned) authenticated = default;
             try
             {
                 var rules = DryIoc.Rules.Default
@@ -186,7 +186,8 @@ namespace iBotSotALambda.Controllers
             return new JsonResult(new
             {
                 statusMessage = statusMessage,
-                authenticated = authenticated
+                authenticated = authenticated.authenticated,
+                steamid = authenticated.steamid
             });
         }
     }

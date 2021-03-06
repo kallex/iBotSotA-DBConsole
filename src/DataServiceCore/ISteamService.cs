@@ -8,7 +8,7 @@ namespace DataServiceCore
         Task<(ulong steamIdValue, byte[] authToken)> GetAuthTokenA();
         Task<bool> ValidateAuthToken(ulong steamIDValue, byte[] authToken);
 
-        Task<bool> ValidateAuthTokenWeb(string authTokenHex);
+        Task<(bool authenticated, ulong steamid, ulong ownersteamid, bool vacbanned, bool publishedbanned)> ValidateAuthTokenWeb(string authTokenHex);
         void InitSteamClient();
     }
 }

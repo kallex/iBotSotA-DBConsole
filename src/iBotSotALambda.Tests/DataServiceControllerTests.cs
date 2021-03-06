@@ -57,7 +57,7 @@ namespace iBotSotALambda.Tests
             var authData = await steamService.GetAuthTokenA();
             var authDataHex = authData.authToken.ToHexString();
             var authenticated = await steamService.ValidateAuthTokenWeb(authDataHex);
-            Assert.True(authenticated);
+            Assert.True(authenticated.authenticated);
         }
 
 
@@ -83,6 +83,27 @@ namespace iBotSotALambda.Tests
                 authenticated = true
             });
             Assert.Equal(expected.Value, result.Value);
+        }
+
+        [Fact]
+        public async Task SteamKeyValidationTest()
+        {
+            var container = new Container();
+            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+
+            steamService.InitSteamClient();
+            var authData = await steamService.GetAuthTokenA();
+
+            using var httpClient = new HttpClient();
+            var authDataHex = authData.authToken.ToHexString();
+
+            
+            var url = $"https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key={SteamWebApiKey}&appid={SteamAppId}&ticket={authDataHex}";
+            var response = await httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
         }
 
         [Fact]
