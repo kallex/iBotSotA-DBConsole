@@ -67,6 +67,7 @@ namespace iBotSotALambda.Controllers
             bool authenticated = false;
             try
             {
+                /*
                 var rules = DryIoc.Rules.Default
                     .With(DryIoc.FactoryMethod.ConstructorWithResolvableArguments)
                     .WithFactorySelector(DryIoc.Rules.SelectLastRegisteredFactory())
@@ -80,6 +81,7 @@ namespace iBotSotALambda.Controllers
                 steamService.InitService(Startup.SteamAppId, Startup.SteamWebApiKey);
                 authenticated = await steamService.ValidateAuthTokenWeb(arg);
                 statusMessage = "OK";
+                */
             }
             catch (Exception ex)
             {
