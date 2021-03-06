@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.Threading.Tasks;
 using AWSDataService;
+using DataServiceCore;
 using DryIoc;
 
 namespace DataServiceConsole
@@ -14,6 +15,9 @@ namespace DataServiceConsole
 
             container.Register<DynamoDBDataService>(Reuse.Singleton);
             container.Register<TimestreamDataService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
 
             Console.WriteLine("Hello World!");
             return 0;

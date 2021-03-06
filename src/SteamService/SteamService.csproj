@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="libsteam_api.so" />
+    <None Remove="steam_api64.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="libsteam_api.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="steam_api64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DryIoc.dll" Version="4.7.2" />
+    <PackageReference Include="SteamWebAPI2" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataServiceCore\DataServiceCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="SteamService.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
+  <Import Project="packagerefs_win64.targets" Condition=" '$(LINUX_BUILD)' != 'true' " />
+  <Import Project="packagerefs_linux64.targets" Condition=" '$(LINUX_BUILD)' == 'true' " />
+
+</Project>

@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Amazon;
+using AWSDataService;
+using DataServiceCore;
+using DryIoc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -16,9 +21,42 @@ namespace iBotSotALambda
 {
     public class Startup
     {
+        public static string SteamServiceState;
+        public static uint SteamAppId;
+        public static string SteamWebApiKey;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            try
+            {
+                var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
+                var asyncTask = Task.Run(async () =>
+                {
+                    var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
+                    var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
+                    SteamAppId = uint.Parse(steamAppId);
+                    SteamWebApiKey = steamWebApiKey;
+                });
+
+                asyncTask.Wait();
+
+                using var container = new Container();
+
+                //container.Register<DynamoDBDataService>(Reuse.Singleton);
+                //container.Register<TimestreamDataService>(Reuse.Singleton);
+                container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+
+                var steamService = container.Resolve<ISteamService>();
+                steamService.InitService(SteamAppId, SteamWebApiKey);
+                SteamServiceState = "OK";
+            }
+            catch (Exception ex)
+            {
+                SteamServiceState = ex.ToString();
+            }
+
+
         }
 
         public static IConfiguration Configuration { get; private set; }
@@ -48,7 +86,7 @@ namespace iBotSotALambda
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now}");
+                    await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now} - {SteamServiceState}");
                 });
             });
         }
