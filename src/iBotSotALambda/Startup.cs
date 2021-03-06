@@ -75,11 +75,13 @@ namespace iBotSotALambda
         {
             app.UseXRay("iBotSotA");
 
+            bool customExceptionHandling = false;
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
+            else if(customExceptionHandling)
             {
                 app.UseExceptionHandler(errorApp =>
                 {
