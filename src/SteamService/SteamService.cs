@@ -69,14 +69,26 @@ namespace SteamService
             }
         }
 
-        async Task<(bool authenticated, ulong steamid, ulong ownersteamid, bool vacbanned, bool publishedbanned)> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
+        async Task<(bool isAuthenticated, ulong steamId, ulong ownerSteamId, bool vacBanned, bool publisherBanned)> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
         {
-            /*
             var webInterfaceFactory = new SteamWebInterfaceFactory(SteamWebApiKey);
             var userInterface = webInterfaceFactory.CreateSteamWebInterface<SteamWebAPI2.Interfaces.SteamUserAuth>(HttpClient);
-            var authResult = await userInterface.AuthenticateUserTicket(AppId, authTokenHex);
-            return authResult.Data.Response.Success;
-            */
+            var authRequestResponse = await userInterface.AuthenticateUserTicket(AppId, authTokenHex);
+            var authResponse = authRequestResponse.Data.Response;
+            var authResult = authResponse.Params;
+
+            var isAuthenticated = authResponse.Success;
+            if(!ulong.TryParse(authResult.SteamId, out var steamId))
+                steamId = default;
+            if (!ulong.TryParse(authResult.OwnerSteamId, out var ownerSteamId))
+                ownerSteamId = default;
+            var vacBanned = authResult.VacBanned;
+            var publisherBanned = authResult.PublisherBanned;
+
+            var result = (isAuthenticated, steamId, ownerSteamId,
+                vacBanned, publisherBanned);
+            return result;
+#if never
             using var httpClient = new HttpClient();
 
             var url = $"https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key={SteamWebApiKey}&appid={AppId}&ticket={authTokenHex}";
@@ -98,6 +110,7 @@ namespace SteamService
 
             var result = (authenticated, steamid, ownersteamid, vacbanned, publishedBanned);
             return result;
+#endif
         }
     }
 }
