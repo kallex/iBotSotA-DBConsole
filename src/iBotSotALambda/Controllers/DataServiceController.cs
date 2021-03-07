@@ -11,9 +11,12 @@ namespace iBotSotALambda.Controllers
     [Route("api/[controller]/[action]")]
     public class DataServiceController : ControllerBase
     {
-        public DataServiceController()
+        public DataServiceController(ISteamService steamService)
         {
+            SteamService = steamService;
         }
+
+        public ISteamService SteamService { get; }
 
         public Container Container { get; set; }
 
@@ -32,18 +35,7 @@ namespace iBotSotALambda.Controllers
         [HttpGet]
         public async Task<ActionResult> GetSteamAuthentication([FromQuery] string authDataHex)
         {
-            var rules = DryIoc.Rules.Default
-                .With(DryIoc.FactoryMethod.ConstructorWithResolvableArguments)
-                .WithFactorySelector(DryIoc.Rules.SelectLastRegisteredFactory())
-                .WithTrackingDisposableTransients();
-
-            this.Container = new DryIoc.Container(rules);
-            Container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
-
-
-            var steamService = Container.Resolve<ISteamService>();
-            steamService.InitService(Startup.SteamAppId, Startup.SteamWebApiKey);
-            var authResult = await steamService.ValidateAuthTokenWeb(authDataHex);
+            var authResult = await SteamService.ValidateAuthTokenWeb(authDataHex);
 
             return new JsonResult(new
             {

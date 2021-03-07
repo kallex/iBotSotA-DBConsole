@@ -72,17 +72,13 @@ namespace iBotSotALambda.Tests
             steamService.InitSteamClient();
             var authData = await steamService.GetAuthTokenA();
 
-            var controller = new DataServiceController();
+            var controller = new DataServiceController(steamService);
             var authDataHex = authData.authToken.ToHexString();
             //var result = (JsonResult) await controller.AuthTest(authData.steamIdValue, authDataHex);
             var result = (JsonResult) await controller.GetSteamAuthentication(authDataHex);
-            var expected = new JsonResult(new
-            {
-                statusMessage = "OK",
-                authenticated = true
-            });
-            var content = result.ToString();
-            Assert.StartsWith("{\"statusMessage\":\"OK\",\"authenticated\":true,\"steamid\":", content);
+            var content = result.Value.ToString();
+            Assert.StartsWith("{ isAuthenticated = True, steamId = ", content);
+            Assert.EndsWith(", vacBanned = False, publisherBanned = False }", content);
         }
 
         [Fact]
@@ -109,6 +105,7 @@ namespace iBotSotALambda.Tests
         }
 
         [Fact]
+        [Trait("TestType", "Integration")]
         public async Task DevServerAuthenticateJsonTest()
         {
             var container = new Container();
@@ -125,7 +122,9 @@ namespace iBotSotALambda.Tests
             var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
             var response = await httpClient.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
-            Assert.StartsWith("{\"statusMessage\":\"OK\",\"authenticated\":true,\"steamid\":", content);
+            
+            
+            Assert.StartsWith("{\"isAuthenticated\":true,\"steamId\":", content);
         }
 
 

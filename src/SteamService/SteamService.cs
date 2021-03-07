@@ -30,7 +30,8 @@ namespace SteamService
 
         void ISteamService.InitSteamClient()
         {
-            SteamClient.Init(AppId);
+            if(!SteamClient.IsValid)
+                SteamClient.Init(AppId);
         }
 
         async Task<(ulong steamIdValue, byte[] authToken)> ISteamService.GetAuthTokenA()
