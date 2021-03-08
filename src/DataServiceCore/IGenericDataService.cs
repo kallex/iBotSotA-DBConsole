@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataServiceCore
+namespace Services
 {
     public interface IGenericDataService
     {

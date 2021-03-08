@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DataServiceCore;
+using DryIoc;
+using Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamWebAPI2.Utilities;
 using Steamworks;
 
-namespace SteamService
+namespace SteamServices
 {
     public class SteamService : ISteamService
     {
         public uint AppId;
         private string SteamWebApiKey;
         private HttpClient HttpClient;
+        public IDiagnosticService DiagnosticService { get; }
 
-        public SteamService()
+        public SteamService(IDiagnosticService diagnosticService)
         {
             this.HttpClient = new HttpClient();
+            this.DiagnosticService = diagnosticService;
         }
 
 
@@ -72,46 +75,26 @@ namespace SteamService
 
         async Task<(bool isAuthenticated, ulong steamId, ulong ownerSteamId, bool vacBanned, bool publisherBanned)> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
         {
-            var webInterfaceFactory = new SteamWebInterfaceFactory(SteamWebApiKey);
-            var userInterface = webInterfaceFactory.CreateSteamWebInterface<SteamWebAPI2.Interfaces.SteamUserAuth>(HttpClient);
-            var authRequestResponse = await userInterface.AuthenticateUserTicket(AppId, authTokenHex);
-            var authResponse = authRequestResponse.Data.Response;
-            var authResult = authResponse.Params;
+            return await DiagnosticService.ExecAsync(async diagnosticService =>
+            {
+                var webInterfaceFactory = new SteamWebInterfaceFactory(SteamWebApiKey);
+                var userInterface = webInterfaceFactory.CreateSteamWebInterface<SteamWebAPI2.Interfaces.SteamUserAuth>(HttpClient);
+                var authRequestResponse = await userInterface.AuthenticateUserTicket(AppId, authTokenHex);
+                var authResponse = authRequestResponse.Data.Response;
+                var authResult = authResponse.Params;
 
-            var isAuthenticated = authResponse.Success;
-            if(!ulong.TryParse(authResult.SteamId, out var steamId))
-                steamId = default;
-            if (!ulong.TryParse(authResult.OwnerSteamId, out var ownerSteamId))
-                ownerSteamId = default;
-            var vacBanned = authResult.VacBanned;
-            var publisherBanned = authResult.PublisherBanned;
+                var isAuthenticated = authResponse.Success;
+                if (!ulong.TryParse(authResult.SteamId, out var steamId))
+                    steamId = default;
+                if (!ulong.TryParse(authResult.OwnerSteamId, out var ownerSteamId))
+                    ownerSteamId = default;
+                var vacBanned = authResult.VacBanned;
+                var publisherBanned = authResult.PublisherBanned;
 
-            var result = (isAuthenticated, steamId, ownerSteamId,
-                vacBanned, publisherBanned);
-            return result;
-#if never
-            using var httpClient = new HttpClient();
-
-            var url = $"https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key={SteamWebApiKey}&appid={AppId}&ticket={authTokenHex}";
-            var response = await httpClient.GetAsync(url);
-            var content = await response.Content.ReadAsStringAsync();
-            var json = (JObject) JsonConvert.DeserializeObject(content);
-            var responseData = json["response"]["params"];
-
-            var authenticated = responseData["result"]?.ToString() == "OK";
-            var steamIdStr = responseData["steamid"]?.ToString() ?? "0";
-            if (!ulong.TryParse(steamIdStr, out var steamid))
-                steamid = 0;
-            var ownerSteamIdStr = responseData["ownersteamid"]?.ToString() ?? "0";
-            if (!ulong.TryParse(ownerSteamIdStr, out var ownersteamid))
-                ownersteamid = 0;
-
-            var vacbanned = responseData["vacbanned"]?.ToString() == "true";
-            var publishedBanned = responseData["publisherbanned"]?.ToString() == "true";
-
-            var result = (authenticated, steamid, ownersteamid, vacbanned, publishedBanned);
-            return result;
-#endif
+                var result = (isAuthenticated, steamId, ownerSteamId,
+                    vacBanned, publisherBanned);
+                return result;
+            });
         }
     }
 }

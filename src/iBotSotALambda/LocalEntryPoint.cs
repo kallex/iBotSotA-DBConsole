@@ -2,7 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Amazon;
-using DataServiceCore;
+using AWSDataServices;
+using Services;
 using DryIoc;
 using DryIoc.Microsoft.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
@@ -29,8 +30,8 @@ namespace iBotSotALambda
                 .UseServiceProviderFactory(new DryIocServiceProviderFactory())
                 .ConfigureContainer<Container>((hostContext, container) =>
                 {
-                    container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
-
+                    container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+                    container.Register<ISteamService, SteamServices.SteamService>(Reuse.Singleton);
 
                     var steamService = container.Resolve<ISteamService>();
                     var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);

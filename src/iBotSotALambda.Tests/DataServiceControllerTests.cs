@@ -8,12 +8,15 @@ using Amazon.APIGateway.Model;
 using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.TestUtilities;
-using DataServiceCore;
+using AWSDataServices;
+using Services;
 using DryIoc;
 using iBotSotALambda.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using SteamServices;
 using Xunit;
+using HexUtil = iBotSotALambda.Controllers.HexUtil;
 
 namespace iBotSotALambda.Tests
 {
@@ -29,7 +32,8 @@ namespace iBotSotALambda.Tests
             try
             {
                 var container = new Container();
-                container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+                container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+                container.Register<ISteamService, SteamService>(Reuse.Singleton);
                 var steamService = container.Resolve<ISteamService>();
                 steamService.InitService(SteamAppId, SteamWebApiKey);
                 steamService.InitSteamClient();
@@ -48,13 +52,15 @@ namespace iBotSotALambda.Tests
         public async Task SelfAuthenticationTestWeb()
         {
             var container = new Container();
-            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
             steamService.InitSteamClient();
 
             var authData = await steamService.GetAuthTokenA();
-            var authDataHex = authData.authToken.ToHexString();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
             var authenticated = await steamService.ValidateAuthTokenWeb(authDataHex);
             Assert.True(authenticated.isAuthenticated);
         }
@@ -64,7 +70,8 @@ namespace iBotSotALambda.Tests
         public async Task ServerAuthenticateTest()
         {
             var container = new Container();
-            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
@@ -73,7 +80,7 @@ namespace iBotSotALambda.Tests
             var authData = await steamService.GetAuthTokenA();
 
             var controller = new DataServiceController(steamService);
-            var authDataHex = authData.authToken.ToHexString();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
             //var result = (JsonResult) await controller.AuthTest(authData.steamIdValue, authDataHex);
             var result = (JsonResult) await controller.GetSteamAuthentication(authDataHex);
             var content = result.Value.ToString();
@@ -85,7 +92,8 @@ namespace iBotSotALambda.Tests
         public async Task SteamKeyValidationTest()
         {
             var container = new Container();
-            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
@@ -94,7 +102,7 @@ namespace iBotSotALambda.Tests
             var authData = await steamService.GetAuthTokenA();
 
             using var httpClient = new HttpClient();
-            var authDataHex = authData.authToken.ToHexString();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
 
             
             var url = $"https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key={SteamWebApiKey}&appid={SteamAppId}&ticket={authDataHex}";
@@ -109,7 +117,8 @@ namespace iBotSotALambda.Tests
         public async Task DevServerAuthenticateJsonTest()
         {
             var container = new Container();
-            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
@@ -118,7 +127,7 @@ namespace iBotSotALambda.Tests
             var authData = await steamService.GetAuthTokenA();
 
             using var httpClient = new HttpClient();
-            var authDataHex = authData.authToken.ToHexString();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
             var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
             var response = await httpClient.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
