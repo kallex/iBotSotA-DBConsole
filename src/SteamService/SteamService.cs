@@ -75,7 +75,7 @@ namespace SteamServices
 
         async Task<(bool isAuthenticated, ulong steamId, ulong ownerSteamId, bool vacBanned, bool publisherBanned)> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
         {
-            return await DiagnosticService.ExecAsync(async diagnosticService =>
+            return await DiagnosticService.ExecAsync(nameof(SteamService), async diagnosticService =>
             {
                 var webInterfaceFactory = new SteamWebInterfaceFactory(SteamWebApiKey);
                 var userInterface = webInterfaceFactory.CreateSteamWebInterface<SteamWebAPI2.Interfaces.SteamUserAuth>(HttpClient);

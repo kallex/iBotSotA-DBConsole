@@ -8,27 +8,20 @@ namespace AWSDataServices
 {
     public class AWSXRayService : IDiagnosticService
     {
-        void IDiagnosticService.Exec(Action<IDiagnosticService> action, [CallerMemberName] string callerName = "")
+        public void Exec(string callingTypeName, Action<IDiagnosticService> action,
+            [CallerMemberName] string callerName = "")
         {
-            AWSXRayRecorder.Instance?.BeginSubsegment(callerName);
-            try
+            Exec<object>(callingTypeName, diagnosticService =>
             {
-                action(this);
-            }
-            catch (Exception ex)
-            {
-                AWSXRayRecorder.Instance?.AddException(ex);
-                throw;
-            }
-            finally
-            {
-                AWSXRayRecorder.Instance?.EndSubsegment();
-            }
+                action(diagnosticService);
+                return null;
+            }, callerName);
         }
 
-        T IDiagnosticService.Exec<T>(Func<IDiagnosticService, T> function, [CallerMemberName] string callerName = "")
+        public T Exec<T>(string callingTypeName, Func<IDiagnosticService, T> function,
+            [CallerMemberName] string callerName = "")
         {
-            AWSXRayRecorder.Instance?.BeginSubsegment(callerName);
+            AWSXRayRecorder.Instance?.BeginSubsegment($"{callingTypeName}.{callerName}");
             try
             {
                 return function(this);
@@ -44,27 +37,20 @@ namespace AWSDataServices
             }
         }
 
-        async Task IDiagnosticService.ExecAsync(Func<IDiagnosticService, Task> asyncAction, [CallerMemberName] string callerName = "")
+        public async Task ExecAsync(string callingTypeName, Func<IDiagnosticService, Task> asyncAction,
+            [CallerMemberName] string callerName = "")
         {
-            AWSXRayRecorder.Instance?.BeginSubsegment(callerName);
-            try
+            await ExecAsync<object>(callingTypeName, async diagnosticService =>
             {
-                await asyncAction(this);
-            }
-            catch (Exception ex)
-            {
-                AWSXRayRecorder.Instance?.AddException(ex);
-
-            }
-            finally
-            {
-                AWSXRayRecorder.Instance?.EndSubsegment();
-            }
+                await asyncAction(diagnosticService);
+                return null;
+            }, callerName);
         }
 
-        async Task<T> IDiagnosticService.ExecAsync<T>(Func<IDiagnosticService, Task<T>> asyncFunction, [CallerMemberName] string callerName = "")
+        public async Task<T> ExecAsync<T>(string callingTypeName, Func<IDiagnosticService, Task<T>> asyncFunction,
+            [CallerMemberName] string callerName = "")
         {
-            AWSXRayRecorder.Instance?.BeginSubsegment(callerName);
+            AWSXRayRecorder.Instance?.BeginSubsegment($"{callingTypeName}.{callerName}");
             try
             {
                 return await asyncFunction(this);
