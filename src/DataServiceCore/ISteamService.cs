@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace DataServiceCore
+namespace Services
 {
     public interface ISteamService
     {
@@ -8,7 +8,7 @@ namespace DataServiceCore
         Task<(ulong steamIdValue, byte[] authToken)> GetAuthTokenA();
         Task<bool> ValidateAuthToken(ulong steamIDValue, byte[] authToken);
 
-        Task<bool> ValidateAuthTokenWeb(string authTokenHex);
+        Task<(bool isAuthenticated, ulong steamId, ulong ownerSteamId, bool vacBanned, bool publisherBanned)> ValidateAuthTokenWeb(string authTokenHex);
         void InitSteamClient();
     }
 }

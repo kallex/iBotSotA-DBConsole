@@ -1,8 +1,8 @@
 ﻿using System;
 using System.CommandLine;
 using System.Threading.Tasks;
-using AWSDataService;
-using DataServiceCore;
+using AWSDataServices;
+using Services;
 using DryIoc;
 
 namespace DataServiceConsole
@@ -15,7 +15,7 @@ namespace DataServiceConsole
 
             container.Register<DynamoDBDataService>(Reuse.Singleton);
             container.Register<TimestreamDataService>(Reuse.Singleton);
-            container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamServices.SteamService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
 

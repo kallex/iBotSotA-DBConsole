@@ -4,8 +4,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Amazon;
-using AWSDataService;
-using DataServiceCore;
+using Amazon.XRay.Recorder.Core;
+using AWSDataServices;
+using Services;
 using DryIoc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,36 +28,8 @@ namespace iBotSotALambda
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            try
-            {
-                var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
-                var asyncTask = Task.Run(async () =>
-                {
-                    var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
-                    var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
-                    SteamAppId = uint.Parse(steamAppId);
-                    SteamWebApiKey = steamWebApiKey;
-                });
-
-                asyncTask.Wait();
-
-                using var container = new Container();
-
-                //container.Register<DynamoDBDataService>(Reuse.Singleton);
-                //container.Register<TimestreamDataService>(Reuse.Singleton);
-                container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
-
-                var steamService = container.Resolve<ISteamService>();
-                steamService.InitService(SteamAppId, SteamWebApiKey);
-                SteamServiceState = "OK";
-            }
-            catch (Exception ex)
-            {
-                SteamServiceState = ex.ToString();
-            }
-
-
+            AWSXRayRecorder recorder = new AWSXRayRecorderBuilder().Build();
+            AWSXRayRecorder.InitializeInstance(recorder: recorder);
         }
 
         public static IConfiguration Configuration { get; private set; }
@@ -70,9 +43,43 @@ namespace iBotSotALambda
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseXRay("iBotSotA");
+
+            bool customExceptionHandling = false;
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+            else if(customExceptionHandling)
+            {
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async context =>
+                    {
+                        context.Response.StatusCode = 500;
+                        context.Response.ContentType = "text/html";
+
+                        await context.Response.WriteAsync("<html lang=\"en\"><body>\r\n");
+                        await context.Response.WriteAsync("ERROR!<br><br>\r\n");
+
+                        /*
+                        var exceptionHandlerPathFeature =
+                            context.Features.Get<IExceptionHandlerPathFeature>();
+
+                        if (exceptionHandlerPathFeature?.Error is FileNotFoundException)
+                        {
+                            await context.Response.WriteAsync(
+                                "File error thrown!<br><br>\r\n");
+                        }
+                        */
+
+                        await context.Response.WriteAsync(
+                            "<a href=\"/\">Home</a><br>\r\n");
+                        await context.Response.WriteAsync("</body></html>\r\n");
+                        await context.Response.WriteAsync(new string(' ', 512));
+                    });
+                });
             }
 
             app.UseHttpsRedirection();
@@ -89,6 +96,7 @@ namespace iBotSotALambda
                     await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now} - {SteamServiceState}");
                 });
             });
+
         }
     }
 }

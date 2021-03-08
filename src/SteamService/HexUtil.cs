@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SteamService
+namespace SteamServices
 {
     public static class HexUtil
     {

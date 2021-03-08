@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using DataServiceCore;
+using Services;
 
-namespace AWSDataService
+namespace AWSDataServices
 {
     public class DynamoDBDataService : IGenericDataService
     {

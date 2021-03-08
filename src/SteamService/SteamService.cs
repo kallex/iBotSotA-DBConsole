@@ -1,21 +1,26 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DataServiceCore;
+using DryIoc;
+using Services;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SteamWebAPI2.Utilities;
 using Steamworks;
 
-namespace SteamService
+namespace SteamServices
 {
     public class SteamService : ISteamService
     {
         public uint AppId;
         private string SteamWebApiKey;
         private HttpClient HttpClient;
+        public IDiagnosticService DiagnosticService { get; }
 
-        public SteamService()
+        public SteamService(IDiagnosticService diagnosticService)
         {
             this.HttpClient = new HttpClient();
+            this.DiagnosticService = diagnosticService;
         }
 
 
@@ -28,7 +33,8 @@ namespace SteamService
 
         void ISteamService.InitSteamClient()
         {
-            SteamClient.Init(AppId);
+            if(!SteamClient.IsValid)
+                SteamClient.Init(AppId);
         }
 
         async Task<(ulong steamIdValue, byte[] authToken)> ISteamService.GetAuthTokenA()
@@ -67,12 +73,28 @@ namespace SteamService
             }
         }
 
-        async Task<bool> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
+        async Task<(bool isAuthenticated, ulong steamId, ulong ownerSteamId, bool vacBanned, bool publisherBanned)> ISteamService.ValidateAuthTokenWeb(string authTokenHex)
         {
-            var webInterfaceFactory = new SteamWebInterfaceFactory(SteamWebApiKey);
-            var userInterface = webInterfaceFactory.CreateSteamWebInterface<SteamWebAPI2.Interfaces.SteamUserAuth>(HttpClient);
-            var authResult = await userInterface.AuthenticateUserTicket(AppId, authTokenHex);
-            return authResult.Data.Response.Success;
+            return await DiagnosticService.ExecAsync(nameof(SteamService), async diagnosticService =>
+            {
+                var webInterfaceFactory = new SteamWebInterfaceFactory(SteamWebApiKey);
+                var userInterface = webInterfaceFactory.CreateSteamWebInterface<SteamWebAPI2.Interfaces.SteamUserAuth>(HttpClient);
+                var authRequestResponse = await userInterface.AuthenticateUserTicket(AppId, authTokenHex);
+                var authResponse = authRequestResponse.Data.Response;
+                var authResult = authResponse.Params;
+
+                var isAuthenticated = authResponse.Success;
+                if (!ulong.TryParse(authResult.SteamId, out var steamId))
+                    steamId = default;
+                if (!ulong.TryParse(authResult.OwnerSteamId, out var ownerSteamId))
+                    ownerSteamId = default;
+                var vacBanned = authResult.VacBanned;
+                var publisherBanned = authResult.PublisherBanned;
+
+                var result = (isAuthenticated, steamId, ownerSteamId,
+                    vacBanned, publisherBanned);
+                return result;
+            });
         }
     }
 }

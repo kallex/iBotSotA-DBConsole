@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
-using DataServiceCore;
+using Services;
 
-namespace AWSDataService
+
+namespace AWSDataServices
 {
     public class TimestreamDataService : ITimeseriesDataService
     {
