@@ -40,7 +40,8 @@ namespace RuntimeSetup
                 Code = Code.FromBucket(bucket, lambdaPackageKey),
                 Handler = "iBotSotALambda::iBotSotALambda.LambdaEntryPoint::FunctionHandlerAsync",
                 Tracing = Tracing.ACTIVE,
-                Timeout = Duration.Minutes(1)
+                Timeout = Duration.Minutes(1),
+                MemorySize = 1024
             });
             var managedPolcyID = $"{idName}-Policy";
             function.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(stack, managedPolcyID, "arn:aws:iam::394301006475:policy/iBotSotA-OperatorPolicy"));
