@@ -1,8 +1,14 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon;
+using AWSDataServices;
+using Services;
+using DryIoc;
+using DryIoc.Microsoft.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using SteamServices;
 
 namespace iBotSotALambda
 {
@@ -47,6 +53,27 @@ namespace iBotSotALambda
         /// <param name="builder"></param>
         protected override void Init(IHostBuilder builder)
         {
+            builder.UseServiceProviderFactory(new DryIocServiceProviderFactory())
+                .ConfigureContainer<Container>((hostContext, container) =>
+                {
+                    container.Register<ISteamService, SteamService>(Reuse.Singleton);
+                    container.Register<IDiagnosticService, AWSXRayService>(Reuse.Singleton);
+
+                    var steamService = container.Resolve<ISteamService>();
+                    var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
+                    uint SteamAppId = default;
+                    string SteamWebApiKey = default;
+                    var asyncTask = Task.Run(async () =>
+                    {
+                        var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
+                        var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
+                        SteamAppId = uint.Parse(steamAppId);
+                        SteamWebApiKey = steamWebApiKey;
+                    });
+
+                    asyncTask.Wait();
+                    steamService.InitService(SteamAppId, SteamWebApiKey);
+                });
         }
     }
 }
