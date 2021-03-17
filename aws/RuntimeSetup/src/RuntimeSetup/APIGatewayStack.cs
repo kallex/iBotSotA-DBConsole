@@ -13,7 +13,7 @@ namespace RuntimeSetup
         {
             var zoneName = "ibotsota.net";
             var envName = envDetails.EnvSuffix;
-            var domainName = $"lambda-{envName}-{zoneName}";
+            var domainName = $"lambda-{envName}.{zoneName}";
             var apiIdName = $"{envDetails.AppPrefix}-api-{envDetails.EnvSuffix}";
             string hostedZoneID = "Z01085715K1SNU0AXFAU";
             var hostedZone = HostedZone.FromHostedZoneAttributes(stack, $"hostedzone-{zoneName}",
