@@ -128,7 +128,8 @@ namespace iBotSotALambda.Tests
 
             using var httpClient = new HttpClient();
             var authDataHex = HexUtil.ToHexString(authData.authToken);
-            var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            //var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var url = $"https://lambda-dev-ibotsota.theball.me/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
             var response = await httpClient.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
             
