@@ -11,11 +11,11 @@ namespace RuntimeSetup
     {
         public static RestApi Setup(Stack stack, EnvironmentDetails envDetails, Function lambdaFunction)
         {
-            var zoneName = "theball.me";
+            var zoneName = "ibotsota.net";
             var envName = envDetails.EnvSuffix;
-            var domainName = $"lambda-{envName}-ibotsota.{zoneName}";
+            var domainName = $"lambda-{envName}-{zoneName}";
             var apiIdName = $"{envDetails.AppPrefix}-api-{envDetails.EnvSuffix}";
-            string hostedZoneID = "Z1XC67ZO4ST4EW";
+            string hostedZoneID = "Z01085715K1SNU0AXFAU";
             var hostedZone = HostedZone.FromHostedZoneAttributes(stack, $"hostedzone-{zoneName}",
                 new HostedZoneAttributes()
                 {
