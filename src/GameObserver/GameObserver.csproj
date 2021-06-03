@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ext\Photon\PhotonUnity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Photon-DotNet">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ext\dll\Photon-NetStandard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="T4\GameNetworkObserver.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>GameNetworkObserver.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="T4\GameNetworkObserver.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GameNetworkObserver.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

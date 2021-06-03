@@ -5,15 +5,11 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.APIGateway;
 using Amazon.APIGateway.Model;
-using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
-using Amazon.Lambda.APIGatewayEvents;
-using Amazon.Lambda.TestUtilities;
 using AWSDataServices;
 using Services;
 using DryIoc;
 using iBotSotALambda.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using SteamServices;
 using Xunit;
 using HexUtil = iBotSotALambda.Controllers.HexUtil;
@@ -129,7 +125,7 @@ namespace iBotSotALambda.Tests
             using var httpClient = new HttpClient();
             var authDataHex = HexUtil.ToHexString(authData.authToken);
             //var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
-            var url = $"https://lambda-dev-ibotsota.theball.me/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var url = $"https://lambda-dev.ibotsota.net/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
             var response = await httpClient.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
             
@@ -143,7 +139,7 @@ namespace iBotSotALambda.Tests
         {
             var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
             var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
-            var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
+            var steamWebApiKey = await parameterClient.GetValueAsync("ibotsota-steamwebapikey");
             SteamAppId = uint.Parse(steamAppId);
             SteamWebApiKey = steamWebApiKey;
 
@@ -164,5 +160,5 @@ namespace iBotSotALambda.Tests
         {
         }
     }
-
-}
+    
+ }
