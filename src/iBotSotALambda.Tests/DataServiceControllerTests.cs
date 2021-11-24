@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.APIGateway;
@@ -133,6 +135,26 @@ namespace iBotSotALambda.Tests
             Assert.StartsWith("{\"isAuthenticated\":true,\"steamId\":", content);
         }
 
+
+        [Fact]
+        public async Task SendGameDataTest()
+        {
+            var container = new Container();
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+
+            var controller = new DataServiceController(steamService);
+            var authData = await steamService.GetAuthTokenA();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
+
+            BinaryFormatter bf = new BinaryFormatter();
+            var memoryStream = new MemoryStream();
+
+            var result = controller.SubmitMatchData(authDataHex, null);
+        }
 
 
         public async Task InitializeAsync()

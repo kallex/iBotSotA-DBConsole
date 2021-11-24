@@ -21,14 +21,17 @@ namespace iBotSotALambda.Controllers
         public Container Container { get; set; }
 
         [HttpPost]
-        public void SubmitMatchData([FromQuery] string authDataHex, [FromBody] byte[] matchData)
+        public async Task<ActionResult> SubmitMatchData([FromQuery] string authDataHex, [FromBody] byte[] matchData)
         {
+            var authResult = await SteamService.ValidateAuthTokenWeb(authDataHex);
+
             //var container = new Container();
             //container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
             //var steamService = container.Resolve<ISteamService>();
 
             //steamService.InitService();
             //var authToken = steamService.GetAuthTokenA();
+            return new AcceptedResult();
         }
 
 
