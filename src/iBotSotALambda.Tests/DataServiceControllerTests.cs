@@ -145,6 +145,7 @@ namespace iBotSotALambda.Tests
 
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
+            steamService.InitSteamClient();
 
             var controller = new DataServiceController(steamService);
             var authData = await steamService.GetAuthTokenA();
