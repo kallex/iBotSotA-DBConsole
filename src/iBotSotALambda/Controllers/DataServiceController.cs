@@ -1,7 +1,10 @@
 using System;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using DataServiceCore;
 using Services;
 using DryIoc;
 using Microsoft.AspNetCore.Mvc;
@@ -11,19 +14,25 @@ namespace iBotSotALambda.Controllers
     [Route("api/[controller]/[action]")]
     public class DataServiceController : ControllerBase
     {
-        public DataServiceController(ISteamService steamService)
+        public DataServiceController(ISteamService steamService, IMatchDataService matchDataService)
         {
             SteamService = steamService;
+            MatchDataService = matchDataService;
         }
+
+        public IMatchDataService MatchDataService { get; }
 
         public ISteamService SteamService { get; }
 
         public Container Container { get; set; }
 
         [HttpPost]
-        public async Task<ActionResult> SubmitMatchData([FromQuery] string authDataHex, [FromBody] byte[] matchData)
+        public async Task<ActionResult> SubmitMatchData([FromQuery] string authDataHex, [FromBody] byte[] matchDataBinary)
         {
             var authResult = await SteamService.ValidateAuthTokenWeb(authDataHex);
+            var compressedStream = new MemoryStream(matchDataBinary);
+            var decompStream = new GZipStream(compressedStream, CompressionMode.Decompress);
+            var matchData = await ServiceCore.FromJsonAsync<MatchData>(decompStream);
 
             //var container = new Container();
             //container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
@@ -31,6 +40,7 @@ namespace iBotSotALambda.Controllers
 
             //steamService.InitService();
             //var authToken = steamService.GetAuthTokenA();
+            await MatchDataService.StoreMatchData(matchData);
             return new AcceptedResult();
         }
 

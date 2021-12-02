@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -8,6 +10,7 @@ using Amazon;
 using Amazon.APIGateway;
 using Amazon.APIGateway.Model;
 using AWSDataServices;
+using DataServiceCore;
 using Services;
 using DryIoc;
 using iBotSotALambda.Controllers;
@@ -70,14 +73,17 @@ namespace iBotSotALambda.Tests
             var container = new Container();
             container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
             container.Register<ISteamService, SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
 
+            var matchDataService = container.Resolve<IMatchDataService>();
+
             steamService.InitSteamClient();
             var authData = await steamService.GetAuthTokenA();
 
-            var controller = new DataServiceController(steamService);
+            var controller = new DataServiceController(steamService, matchDataService);
             var authDataHex = HexUtil.ToHexString(authData.authToken);
             //var result = (JsonResult) await controller.AuthTest(authData.steamIdValue, authDataHex);
             var result = (JsonResult) await controller.GetSteamAuthentication(authDataHex);
@@ -142,19 +148,60 @@ namespace iBotSotALambda.Tests
             var container = new Container();
             container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
             container.Register<ISteamService, SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
             steamService.InitSteamClient();
 
-            var controller = new DataServiceController(steamService);
+            var matchDataService = container.Resolve<IMatchDataService>();
+
+            var controller = new DataServiceController(steamService, matchDataService);
             var authData = await steamService.GetAuthTokenA();
             var authDataHex = HexUtil.ToHexString(authData.authToken);
 
-            BinaryFormatter bf = new BinaryFormatter();
-            var memoryStream = new MemoryStream();
 
-            var result = controller.SubmitMatchData(authDataHex, null);
+            var steamId = authData.steamIdValue;
+            var matchData = new MatchData()
+            {
+                ClientInfo = new ClientInfo()
+                {
+                    SteamId = steamId,
+                    ClientName = nameof(SendGameDataTest)
+                },
+                MatchEndTime = DateTime.Now,
+                MatchStartTime = DateTime.Now.AddMinutes(-2),
+                ChamberDatas = new List<ChamberData>()
+                {
+                    new ChamberData()
+                    {
+                        ChamberNo = 0,
+                        Duration = TimeSpan.FromSeconds(10),
+                        PlayerDatas = new List<PlayerChamberData>()
+                        {
+                            new PlayerChamberData()
+                            {
+                                Name = "RealPlayerName",
+                                Performance = new PlayerPerformance()
+                                {
+                                    HeadshotHits = 10,
+                                    Hits = 10,
+                                    Shots = 30,
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            using var compressedData = new MemoryStream();
+            using GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal);
+            await ServiceCore.ToJsonStreamAsync(compStream, matchData);
+            await compStream.FlushAsync();
+            var matchBinaryData = compressedData.ToArray();
+
+
+            var result = await controller.SubmitMatchData(authDataHex, matchBinaryData);
         }
 
 

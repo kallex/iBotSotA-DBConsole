@@ -16,6 +16,7 @@ namespace DataServiceConsole
             container.Register<DynamoDBDataService>(Reuse.Singleton);
             container.Register<TimestreamDataService>(Reuse.Singleton);
             container.Register<ISteamService, SteamServices.SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
 

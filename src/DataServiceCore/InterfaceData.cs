@@ -5,6 +5,8 @@ namespace DataServiceCore
 {
     public class MatchData
     {
+        public string AccountID { get; set; }
+        public string MatchID { get; set; }
         public ClientInfo ClientInfo { get; set; }
         public DateTime MatchStartTime { get; set; }
         public DateTime MatchEndTime { get; set; }
@@ -13,7 +15,7 @@ namespace DataServiceCore
 
     public class ClientInfo
     {
-        public long SteamId { get; set; }
+        public ulong SteamId { get; set; }
         public string ClientName { get; set; }
     }
 
