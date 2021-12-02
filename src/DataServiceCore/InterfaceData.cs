@@ -6,7 +6,7 @@ namespace DataServiceCore
     public class MatchData
     {
         public string AccountID { get; set; }
-        public string MatchID { get; set; }
+        public string ItemID { get; set; }
         public ClientInfo ClientInfo { get; set; }
         public DateTime MatchStartTime { get; set; }
         public DateTime MatchEndTime { get; set; }

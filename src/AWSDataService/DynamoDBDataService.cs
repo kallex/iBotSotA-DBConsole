@@ -17,7 +17,7 @@ namespace AWSDataServices
         {
             var dynamoClient = new AmazonDynamoDBClient(RegionEndpoint.EUWest1);
             matchData.AccountID = $"STM:{matchData.ClientInfo.SteamId}";
-            matchData.MatchID = Guid.NewGuid().ToString("N");
+            matchData.ItemID = Guid.NewGuid().ToString("N");
 
             var matchDataJson = ServiceCore.ToJsonString(matchData);
             var matchDataDoc = Document.FromJson(matchDataJson);
