@@ -258,20 +258,23 @@ namespace iBotSotALambda.Tests
             };
 
             using var compressedData = new MemoryStream();
-            using GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal);
-            await ServiceCore.ToJsonStreamAsync(compStream, matchData);
-            await compStream.FlushAsync();
+
+            using (GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal, true))
+            {
+                await ServiceCore.ToJsonStreamAsync(compStream, matchData);
+                compStream.Flush();
+            }
+
             var matchBinaryData = compressedData.ToArray();
 
             using var httpClient = new HttpClient();
-            //var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
             var url = $"https://lambda-dev.ibotsota.net/api/DataService/SubmitMatchData?authDataHex={authDataHex}";
-            //var url = $"https://localhost:44355/api/DataService/SubmitMatchData?authDataHex={authDataHex}";
-            //var url = $"https://localhost:5001/api/DataService/SubmitMatchData?authDataHex={authDataHex}";
+
             var httpContent = new ByteArrayContent(matchBinaryData);
-            httpContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-            //httpClient.
-            var response = await httpClient.PostAsync(url, new ByteArrayContent(matchBinaryData));
+            httpContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            httpContent.Headers.ContentEncoding.Add("gzip");
+
+            var response = await httpClient.PostAsync(url, httpContent);
 
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         }
