@@ -29,9 +29,12 @@ namespace iBotSotALambda.Controllers
         [HttpPost]
         public async Task<ActionResult> SubmitMatchData([FromQuery] string authDataHex)
         {
-            var compressedStream = Request.Body;
-            var decompStream = new GZipStream(compressedStream, CompressionMode.Decompress);
-            var matchData = await ServiceCore.FromJsonAsync<MatchData>(decompStream);
+            //var compressedStream = Request.Body;
+            //var decompStream = new GZipStream(compressedStream, CompressionMode.Decompress);
+            //var matchData = await ServiceCore.FromJsonAsync<MatchData>(decompStream);
+
+            var jsonStream = Request.Body;
+            var matchData = await ServiceCore.FromJsonAsync<MatchData>(jsonStream);
 
             //var container = new Container();
             //container.Register<ISteamService, SteamService.SteamService>(Reuse.Singleton);
