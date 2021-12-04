@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using Amazon;
@@ -107,7 +109,6 @@ namespace iBotSotALambda.Tests
 
             using var httpClient = new HttpClient();
             var authDataHex = HexUtil.ToHexString(authData.authToken);
-
             
             var url = $"https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key={SteamWebApiKey}&appid={SteamAppId}&ticket={authDataHex}";
             var response = await httpClient.GetAsync(url);
@@ -194,14 +195,85 @@ namespace iBotSotALambda.Tests
                 }
             };
 
+            //using var compressedData = new MemoryStream();
+            //using GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal);
+            //await ServiceCore.ToJsonStreamAsync(compStream, matchData);
+            //await compStream.FlushAsync();
+            //var matchBinaryData = compressedData.ToArray();
+
+
+            var result = await controller.SubmitMatchDataFunc(authDataHex, matchData);
+        }
+
+        [Fact]
+        public async Task DevServerSendGameDataTest()
+        {
+            var container = new Container();
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+            steamService.InitSteamClient();
+
+            var matchDataService = container.Resolve<IMatchDataService>();
+
+            var controller = new DataServiceController(steamService, matchDataService);
+            var authData = await steamService.GetAuthTokenA();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
+
+
+            var steamId = authData.steamIdValue;
+            var matchData = new MatchData()
+            {
+                ClientInfo = new ClientInfo()
+                {
+                    SteamId = steamId,
+                    ClientName = nameof(DevServerSendGameDataTest)
+                },
+                MatchEndTime = DateTime.Now,
+                MatchStartTime = DateTime.Now.AddMinutes(-2),
+                ChamberDatas = new List<ChamberData>()
+                {
+                    new ChamberData()
+                    {
+                        ChamberNo = 0,
+                        Duration = TimeSpan.FromSeconds(10),
+                        PlayerDatas = new List<PlayerChamberData>()
+                        {
+                            new PlayerChamberData()
+                            {
+                                Name = "RealPlayerName",
+                                Performance = new PlayerPerformance()
+                                {
+                                    HeadshotHits = 10,
+                                    Hits = 10,
+                                    Shots = 30,
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
             using var compressedData = new MemoryStream();
             using GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal);
             await ServiceCore.ToJsonStreamAsync(compStream, matchData);
             await compStream.FlushAsync();
             var matchBinaryData = compressedData.ToArray();
 
+            using var httpClient = new HttpClient();
+            //var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var url = $"https://lambda-dev.ibotsota.net/api/DataService/SubmitMatchData?authDataHex={authDataHex}";
+            //var url = $"https://localhost:44355/api/DataService/SubmitMatchData?authDataHex={authDataHex}";
+            //var url = $"https://localhost:5001/api/DataService/SubmitMatchData?authDataHex={authDataHex}";
+            var httpContent = new ByteArrayContent(matchBinaryData);
+            httpContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
+            //httpClient.
+            var response = await httpClient.PostAsync(url, new ByteArrayContent(matchBinaryData));
 
-            var result = await controller.SubmitMatchData(authDataHex, matchBinaryData);
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         }
 
 
