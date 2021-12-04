@@ -27,10 +27,9 @@ namespace iBotSotALambda.Controllers
         public Container Container { get; set; }
 
         [HttpPost]
-        public async Task<ActionResult> SubmitMatchData([FromQuery] string authDataHex, [FromBody] byte[] matchDataBinary)
+        public async Task<ActionResult> SubmitMatchData([FromQuery] string authDataHex)
         {
-            var authResult = await SteamService.ValidateAuthTokenWeb(authDataHex);
-            var compressedStream = new MemoryStream(matchDataBinary);
+            var compressedStream = Request.Body;
             var decompStream = new GZipStream(compressedStream, CompressionMode.Decompress);
             var matchData = await ServiceCore.FromJsonAsync<MatchData>(decompStream);
 
@@ -40,6 +39,16 @@ namespace iBotSotALambda.Controllers
 
             //steamService.InitService();
             //var authToken = steamService.GetAuthTokenA();
+            var result = await SubmitMatchDataFunc(authDataHex, matchData);
+            return result;
+        }
+
+        public async Task<ActionResult> SubmitMatchDataFunc(string authDataHex, MatchData matchData)
+        {
+            var authResult = await SteamService.ValidateAuthTokenWeb(authDataHex);
+            if (!authResult.isAuthenticated || authResult.publisherBanned || authResult.vacBanned)
+                throw new UnauthorizedAccessException();
+            matchData.ClientInfo.SteamId = authResult.steamId;
             await MatchDataService.StoreMatchData(matchData);
             return new AcceptedResult();
         }
