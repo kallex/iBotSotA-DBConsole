@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace DataServiceCore
 {
+    public enum MethodName
+    {
+        SubmitMatchData,
+    }
+
     public class MatchData
     {
         public string AccountID { get; set; }
@@ -23,7 +28,7 @@ namespace DataServiceCore
     {
         public TimeSpan Duration { get; set; }
         public int ChamberNo { get; set; }
-        public List<PlayerChamberData> PlayerDatas { get; set;}
+        public List<PlayerChamberData> PlayerDatas { get; set; }
     }
 
     public class PlayerChamberData
