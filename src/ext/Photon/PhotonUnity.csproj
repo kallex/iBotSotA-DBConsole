@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UnityVersion>2021.1.14f1</UnityVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;SUPPORTED_UNITY,UNITY_EDITOR,UNITY_2020_2_OR_NEWER</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;SUPPORTED_UNITY,UNITY_EDITOR,UNITY_2020_2_OR_NEWER</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Resources\PackageManager\ProjectTemplates\libcache\com.unity.template.universal-11.0.0\ScriptAssemblies\UnityEngine.UI.dll" Private="false" />
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.UIModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.UnityWebRequestModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.TextRenderingModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.ParticleSystemModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.PhysicsModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.Physics2DModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.AnimationModule.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.InputModule.dll" Private="false" />
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.InputLegacyModule.dll" Private="false" />
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEngine.JSONSerializeModule.dll" Private="false" />
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEditor.dll" Private="false"/>
+    <Reference Include="C:\Program Files\Unity\Hub\Editor\2021.1.14f1\Editor\Data\Managed\UnityEngine\UnityEditor.CoreModule.dll" Private="false"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Photon-DotNet">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\dll\Photon-NetStandard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

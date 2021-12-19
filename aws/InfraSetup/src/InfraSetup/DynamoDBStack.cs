@@ -10,11 +10,12 @@ namespace InfraSetup
         {
             if (envDetails.Type == EnvironmentType.DevOps)
                 return;
-            var tableItems = new[] {(tableName: "Account", partitionKeyName:"AccountID")};
+            var tableItems = new[] {(tableName: "Account", partitionKeyName:"AccountID", sortKeyName:"ItemID")};
             foreach (var tableItem in tableItems)
             {
                 var tableName = tableItem.tableName;
                 var partitionKeyName = tableItem.partitionKeyName;
+                var sortKeyName = tableItem.sortKeyName;
 
                 var idName = $"{envDetails.AppPrefix}-{tableName}-{envDetails.EnvSuffix}";
                 var table = new Table(stack, idName, new TableProps()
@@ -25,8 +26,14 @@ namespace InfraSetup
                         Type = AttributeType.STRING,
                         Name = partitionKeyName
                     },
+                    SortKey = new Attribute
+                    {
+                        Type = AttributeType.STRING,
+                        Name = sortKeyName,
+                    },
                     BillingMode = BillingMode.PROVISIONED,
-                    RemovalPolicy = RemovalPolicy.RETAIN
+                    RemovalPolicy = RemovalPolicy.RETAIN,
+                    PointInTimeRecovery = true,
                 });
             }
         }

@@ -32,6 +32,7 @@ namespace iBotSotALambda
                 {
                     container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
                     container.Register<ISteamService, SteamServices.SteamService>(Reuse.Singleton);
+                    container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
                     var steamService = container.Resolve<ISteamService>();
                     var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);

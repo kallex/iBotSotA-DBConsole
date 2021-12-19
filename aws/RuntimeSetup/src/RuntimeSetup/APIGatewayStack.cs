@@ -39,6 +39,7 @@ namespace RuntimeSetup
                             HostedZone = hostedZone
                         })
                 },
+                MinimumCompressionSize = 0
             });
 
             var cNameID = $"cname-{domainName}";
