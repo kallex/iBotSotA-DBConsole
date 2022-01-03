@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using Amazon;
@@ -119,7 +120,7 @@ namespace iBotSotALambda.Tests
 
         [Fact]
         [Trait("TestType", "Integration")]
-        public async Task DevServerAuthenticateJsonTest()
+        public async Task DevServerLambdaAuthenticateJsonTest()
         {
             var container = new Container();
             container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
@@ -142,6 +143,30 @@ namespace iBotSotALambda.Tests
             Assert.StartsWith("{\"isAuthenticated\":true,\"steamId\":", content);
         }
 
+        [Fact]
+        [Trait("TestType", "Integration")]
+        public async Task DevServerFargateAuthenticateJsonTest()
+        {
+            var container = new Container();
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+
+            steamService.InitSteamClient();
+            var authData = await steamService.GetAuthTokenA();
+
+            using var httpClient = new HttpClient();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
+            //var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var url = $"https://fg-dev.ibotsota.net/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var response = await httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+
+
+            Assert.StartsWith("{\"isAuthenticated\":true,\"steamId\":", content);
+        }
 
         [Fact]
         public async Task SendGameDataTest()
@@ -206,7 +231,29 @@ namespace iBotSotALambda.Tests
         }
 
         [Fact]
-        public async Task DevServerSendGameDataTest()
+        public async Task DevServerFargateSendGameDataTest()
+        {
+            var baseUrl = "https://fg-dev.ibotsota.net/api/DataService/SubmitMatchData?authDataHex=";
+
+            var response = await postGameDataToUrl(baseUrl, true);
+
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        }
+
+
+        [Fact]
+        public async Task DevServerLambdaSendGameDataTest()
+        {
+            var baseUrl = "https://lambda-dev.ibotsota.net/api/DataService/SubmitMatchData?authDataHex=";
+
+
+            string authDataHex;
+            var response = await postGameDataToUrl(baseUrl, true);
+
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        }
+
+        private async Task<HttpResponseMessage> postGameDataToUrl(string baseUrl, bool useGzip = true, [CallerMemberName] string callerName = null)
         {
             var container = new Container();
             container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
@@ -223,6 +270,7 @@ namespace iBotSotALambda.Tests
             var authData = await steamService.GetAuthTokenA();
             var authDataHex = HexUtil.ToHexString(authData.authToken);
 
+            var url = baseUrl + authDataHex;
 
             var steamId = authData.steamIdValue;
             var matchData = new MatchData()
@@ -230,7 +278,7 @@ namespace iBotSotALambda.Tests
                 ClientInfo = new ClientInfo()
                 {
                     SteamId = steamId,
-                    ClientName = nameof(DevServerSendGameDataTest)
+                    ClientName = callerName ?? nameof(postGameDataToUrl)
                 },
                 MatchEndTime = DateTime.Now,
                 MatchStartTime = DateTime.Now.AddMinutes(-2),
@@ -259,24 +307,30 @@ namespace iBotSotALambda.Tests
 
             using var compressedData = new MemoryStream();
 
-            using (GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal, true))
+            if (useGzip)
             {
-                await ServiceCore.ToJsonStreamAsync(compStream, matchData);
-                compStream.Flush();
+                using (GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal, true))
+                {
+                    await ServiceCore.ToJsonStreamAsync(compStream, matchData);
+                    compStream.Flush();
+                }
+            }
+            else
+            {
+                await ServiceCore.ToJsonStreamAsync(compressedData, matchData);
             }
 
             var matchBinaryData = compressedData.ToArray();
 
             using var httpClient = new HttpClient();
-            var url = $"https://lambda-dev.ibotsota.net/api/DataService/SubmitMatchData?authDataHex={authDataHex}";
 
             var httpContent = new ByteArrayContent(matchBinaryData);
             httpContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            httpContent.Headers.ContentEncoding.Add("gzip");
+            if(useGzip)
+                httpContent.Headers.ContentEncoding.Add("gzip");
 
             var response = await httpClient.PostAsync(url, httpContent);
-
-            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+            return response;
         }
 
 

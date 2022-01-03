@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.XRay.Recorder.Core;
+using Anemonis.AspNetCore.RequestDecompression;
 using AWSDataServices;
 using Services;
 using DryIoc;
@@ -37,6 +38,13 @@ namespace iBotSotALambda
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddRequestDecompression(options =>
+            {
+                options.Providers.Add<GzipDecompressionProvider>();
+                options.Providers.Add<DeflateDecompressionProvider>();
+                options.Providers.Add<BrotliDecompressionProvider>();
+            });
+            services.AddResponseCompression();
             services.AddControllers();
         }
 
@@ -83,6 +91,8 @@ namespace iBotSotALambda
             }
 
             app.UseHttpsRedirection();
+            app.UseRequestDecompression();
+            app.UseResponseCompression();
 
             app.UseRouting();
 
