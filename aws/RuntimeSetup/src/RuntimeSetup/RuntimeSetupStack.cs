@@ -31,7 +31,9 @@ namespace RuntimeSetup
             var buildNumber = System.Environment.GetEnvironmentVariable("BUILD_NUMBER");
 
             var lambdaFunction = LambdaStack.Setup(this, dependencyInfo, envDetails, buildNumber);
-            var api = APIGatewayStack.Setup(this, envDetails, lambdaFunction);
+            var api = APIGatewayStack.Setup(this, dependencyInfo, envDetails, lambdaFunction);
+
+            var fargate = FargateStack.Setup(this, dependencyInfo, envDetails, buildNumber);
 
             // The code that defines your stack goes here
         }
