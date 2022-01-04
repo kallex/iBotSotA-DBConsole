@@ -23,6 +23,8 @@ namespace iBotSotALambda
 {
     public class Startup
     {
+        public static bool IsRunningInLambda;
+
         public static string SteamServiceState;
         public static uint SteamAppId;
         public static string SteamWebApiKey;
@@ -38,13 +40,16 @@ namespace iBotSotALambda
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRequestDecompression(options =>
+            if (!IsRunningInLambda)
             {
-                options.Providers.Add<GzipDecompressionProvider>();
-                options.Providers.Add<DeflateDecompressionProvider>();
-                options.Providers.Add<BrotliDecompressionProvider>();
-            });
-            services.AddResponseCompression();
+                services.AddRequestDecompression(options =>
+                {
+                    options.Providers.Add<GzipDecompressionProvider>();
+                    options.Providers.Add<DeflateDecompressionProvider>();
+                    options.Providers.Add<BrotliDecompressionProvider>();
+                });
+                services.AddResponseCompression();
+            }
             services.AddControllers();
         }
 
@@ -91,11 +96,13 @@ namespace iBotSotALambda
             }
 
             app.UseHttpsRedirection();
-            app.UseRequestDecompression();
-            app.UseResponseCompression();
+            if (!IsRunningInLambda)
+            {
+                app.UseRequestDecompression();
+                app.UseResponseCompression();
+            }
 
             app.UseRouting();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

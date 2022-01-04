@@ -18,6 +18,7 @@ namespace iBotSotALambda
     {
         public static void Main(string[] args)
         {
+            Startup.IsRunningInLambda = false;
             var builder = CreateHostBuilder(args);
             var app = builder.Build();
             app.Run();

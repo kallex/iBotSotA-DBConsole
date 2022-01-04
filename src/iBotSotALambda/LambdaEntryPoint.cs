@@ -40,6 +40,7 @@ namespace iBotSotALambda
         /// <param name="builder"></param>
         protected override void Init(IWebHostBuilder builder)
         {
+            Startup.IsRunningInLambda = true;
             builder
                 .UseStartup<Startup>();
         }
