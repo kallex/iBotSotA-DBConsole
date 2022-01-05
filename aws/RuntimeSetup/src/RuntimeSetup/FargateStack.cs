@@ -32,8 +32,10 @@ namespace RuntimeSetup
 
             //var lambdaPackageKey = $"{envName}/iBotSotALambda_{buildNumber}.zip";
 
-            var vpcId = $"{envName}-ibotsota-fargatevpc";
-            var clusterId = $"{envName}-ibotsota-fargatecluster";
+            //var vpcId = $"{envName}-ibotsota-fargatevpc";
+            //var clusterId = $"{envName}-ibotsota-fargatecluster";
+            var vpcId = $"fgvpc";
+            var clusterId = $"fgcluster";
             /*
             var function = new Function(stack, idName, new FunctionProps()
             {
