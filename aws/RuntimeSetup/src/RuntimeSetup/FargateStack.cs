@@ -9,6 +9,8 @@ using Amazon.CDK.AWS.ElasticLoadBalancingV2;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.S3;
+using ApplicationLoadBalancerProps = Amazon.CDK.AWS.ElasticLoadBalancingV2.ApplicationLoadBalancerProps;
+using Protocol = Amazon.CDK.AWS.ECS.Protocol;
 
 namespace RuntimeSetup
 {
@@ -111,7 +113,7 @@ namespace RuntimeSetup
 
             var vpc = new Vpc(stack, vpcId, new VpcProps
             {
-                MaxAzs = 1, // Default is all AZs in region
+                MaxAzs = 2, // Default is all AZs in region
                 NatGateways = 0
             });
 
@@ -135,71 +137,87 @@ namespace RuntimeSetup
                 });
 
             // Create a public IP Fargate service and make it public
-            string fgTaskId = "fgTask";
-            var fgService = new FargateService(stack, fargateIdName, new FargateServiceProps()
+            string fargateTaskId = "fg-task";
+            var fargateService = new FargateService(stack, fargateIdName, new FargateServiceProps()
             {
-                AssignPublicIp = false,
-                Cluster = cluster,
-                DesiredCount = 1,
-                TaskDefinition = new FargateTaskDefinition(stack, fgTaskId, new FargateTaskDefinitionProps()
+                Cluster = cluster,          // Required
+                DesiredCount = 1,           // Default is 1
+                TaskDefinition = new FargateTaskDefinition(stack, fargateTaskId, new FargateTaskDefinitionProps()
                 {
-
+                    Cpu = 256,
+                    MemoryLimitMiB = 1024,
                 }),
-
-
+                ServiceName = fargateIdName,
+                AssignPublicIp = true,
+                CapacityProviderStrategies = new ICapacityProviderStrategy[]
+                {
+                    new CapacityProviderStrategy()
+                    {
+                        Base = 1,
+                        CapacityProvider = "FARGATE_SPOT",
+                        Weight = 1
+                    }
+                },
             });
-
-            string containerId = "fgContainer";
-            fgService.TaskDefinition.AddContainer(containerId, new ContainerDefinitionOptions()
+            string containerId = "web";
+            var container = fargateService.TaskDefinition.AddContainer(containerId, new ContainerDefinitionOptions()
             {
                 Image = ContainerImage.FromAsset(@"..\..\departdir"),
             });
 
+            container.AddPortMappings(new PortMapping()
+            {
+                Protocol = Protocol.TCP,
+                ContainerPort = 80
+            });
 
-
-            /*
-            var fargateService = new ApplicationLoadBalancedFargateService(stack, fargateIdName,
-                new ApplicationLoadBalancedFargateServiceProps
+            var dnsCert = new DnsValidatedCertificate(stack, $"cert-ibotsota-{envName}-fargate",
+                new DnsValidatedCertificateProps()
                 {
-                    Cluster = cluster,          // Required
-                    DesiredCount = 1,           // Default is 1
-                    TaskImageOptions = new ApplicationLoadBalancedTaskImageOptions
-                    {
-                        Image = ContainerImage.FromAsset(@"..\..\departdir"),
-                        //Image = ContainerImage.FromAsset(@"D:\UserData\Kalle\work\iBotSotA-DataService\src\iBotSotALambda\bin\Debug\netcoreapp3.1"), //ContainerImage.FromRegistry("amazon/amazon-ecs-sample")
-                        //ContainerPort = 5000
-                    },
-                    MemoryLimitMiB = 512,
-                    Cpu = 256,
-                    PublicLoadBalancer = true,    // Default is false
-                    DomainZone = hostedZone,
-                    Certificate = new DnsValidatedCertificate(stack, $"cert-ibotsota-{envName}-fargate", new DnsValidatedCertificateProps()
-                    {
-                        DomainName = domainName,
-                        HostedZone = hostedZone
-                    }),
-                    TargetProtocol = ApplicationProtocol.HTTP,
-                    //ProtocolVersion = ApplicationProtocolVersion.HTTP2,
-                    ServiceName = fargateIdName,
-                }
-            );
-            */
+                    DomainName = domainName,
+                    HostedZone = hostedZone
+                });
+
+
+            string albId = fargateIdName + "-LB";
+            var alb = new ApplicationLoadBalancer(stack, albId, new ApplicationLoadBalancerProps()
+            {
+                InternetFacing = true,
+                Vpc = vpc,
+            });
+
+            var listener = alb.AddListener("listener", new BaseApplicationListenerProps()
+            {
+                Protocol = ApplicationProtocol.HTTPS,
+                Certificates = new IListenerCertificate[]
+                {
+                    new ListenerCertificate(dnsCert.CertificateArn)
+                },
+                Open = true,
+            });
+
+            var targetGroup = listener.AddTargets("lbTarget", new AddApplicationTargetsProps()
+            {
+                Protocol = ApplicationProtocol.HTTP,
+                Port = 80,
+            });
+            targetGroup.AddTarget(fargateService);
+
             var managedPolicyID = $"{idName}-Policy";
 
-            fgService.TaskDefinition.TaskRole.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(stack, managedPolicyID, "arn:aws:iam::394301006475:policy/iBotSotA-OperatorPolicy"));
+            fargateService.TaskDefinition.TaskRole.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(stack, managedPolicyID, "arn:aws:iam::394301006475:policy/iBotSotA-OperatorPolicy"));
 
-            /*
             var cNameID = $"cname-{domainName}";
-            var route53 = new ARecord(stack, cNameID, new 
-                ARecordProps()
+            var route53 = new CnameRecord(stack, cNameID, new CnameRecordProps()
             {
                 RecordName = domainName,
                 Ttl = Duration.Minutes(5),
+                DomainName = alb.LoadBalancerDnsName,
                 Zone = hostedZone,
                 Comment = "CloudFormation Stack maintained"
             });
-            */
-            return fgService;
+
+            return fargateService;
         }
 
     }
