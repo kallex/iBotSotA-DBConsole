@@ -34,6 +34,7 @@ namespace RuntimeSetup
             var api = APIGatewayStack.Setup(this, dependencyInfo, envDetails, lambdaFunction);
 
             var fargate = FargateStack.Setup(this, dependencyInfo, envDetails, buildNumber);
+            //var fargate = FargateStack.SetupFG(this, dependencyInfo, envDetails, buildNumber);
 
             // The code that defines your stack goes here
         }
