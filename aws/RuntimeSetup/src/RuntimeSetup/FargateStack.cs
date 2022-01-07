@@ -31,12 +31,6 @@ namespace RuntimeSetup
             var domainName = $"fg-{envName}.{zoneName}";
             var fargateIdName = $"{envDetails.AppPrefix}-fg-{envDetails.EnvSuffix}";
 
-            var capacityProvider = new CapacityProviderStrategy()
-            {
-                CapacityProvider = "FARGATE_SPOT",
-            };
-
-
             var vpc = new Vpc(stack, vpcId, new VpcProps
             {
                 MaxAzs = 2, // Default is all AZs in region
