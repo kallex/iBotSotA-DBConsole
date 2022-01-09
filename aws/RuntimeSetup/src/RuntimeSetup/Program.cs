@@ -15,19 +15,29 @@ namespace RuntimeSetup
             Environment env = getEnvironment();
             StackProps stackProps = new StackProps
             {
-                Env = env
+                Env = env,
             };
             var appName = "ibotsota";
-            new RuntimeSetupStack(app, "iBotSotA-dev-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "dev", Type = EnvironmentType.Dev }, stackProps);
-            new RuntimeSetupStack(app, "iBotSotA-test-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "test", Type = EnvironmentType.Test }, stackProps);
-            new RuntimeSetupStack(app, "iBotSotA-beta-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "beta", Type = EnvironmentType.Beta }, stackProps);
+            var sharedEnvironments = new string[] { "dev", "test", "beta" };
+            var sharedId = "iBotSotA-Shr-Runtime";
+            
+            SharedConstructs sharedConstruct = RuntimeSetupStack.SetupShared(app, sharedId,
+                new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "shr", Type = EnvironmentType.Shared }, sharedEnvironments, stackProps);
+
+            //var sharedStack = sharedConstruct.Stack;
+
+
+
+            RuntimeSetupStack.Setup(app, sharedConstruct,"iBotSotA-dev-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "dev", Type = EnvironmentType.Dev }, stackProps);
+            RuntimeSetupStack.Setup(app, sharedConstruct, "iBotSotA-test-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "test", Type = EnvironmentType.Test }, stackProps);
+            RuntimeSetupStack.Setup(app, sharedConstruct, "iBotSotA-beta-Runtime", new EnvironmentDetails() { AppPrefix = appName, EnvSuffix = "beta", Type = EnvironmentType.Beta }, stackProps);
             app.Synth();
         }
         private static Environment getEnvironment()
         {
             return new Environment()
             {
-                Region = "eu-west-1"
+                Region = "eu-west-1",
             };
         }
 

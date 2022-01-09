@@ -18,7 +18,10 @@ namespace iBotSotALambda
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            Startup.IsRunningInLambda = false;
+            var builder = CreateHostBuilder(args);
+            var app = builder.Build();
+            app.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -32,6 +35,7 @@ namespace iBotSotALambda
                 {
                     container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
                     container.Register<ISteamService, SteamServices.SteamService>(Reuse.Singleton);
+                    container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
                     var steamService = container.Resolve<ISteamService>();
                     var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
@@ -40,14 +44,13 @@ namespace iBotSotALambda
                     var asyncTask = Task.Run(async () =>
                     {
                         var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
-                        var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
+                        var steamWebApiKey = await parameterClient.GetValueAsync("ibotsota-steamwebapikey");
                         SteamAppId = uint.Parse(steamAppId);
                         SteamWebApiKey = steamWebApiKey;
                     });
 
                     asyncTask.Wait();
                     steamService.InitService(SteamAppId, SteamWebApiKey);
-                })
-            ;
+                });
     }
 }

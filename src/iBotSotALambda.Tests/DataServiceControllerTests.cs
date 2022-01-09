@@ -1,19 +1,23 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.APIGateway;
 using Amazon.APIGateway.Model;
-using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
-using Amazon.Lambda.APIGatewayEvents;
-using Amazon.Lambda.TestUtilities;
 using AWSDataServices;
+using DataServiceCore;
 using Services;
 using DryIoc;
 using iBotSotALambda.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using SteamServices;
 using Xunit;
 using HexUtil = iBotSotALambda.Controllers.HexUtil;
@@ -72,14 +76,17 @@ namespace iBotSotALambda.Tests
             var container = new Container();
             container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
             container.Register<ISteamService, SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
             var steamService = container.Resolve<ISteamService>();
             steamService.InitService(SteamAppId, SteamWebApiKey);
 
+            var matchDataService = container.Resolve<IMatchDataService>();
+
             steamService.InitSteamClient();
             var authData = await steamService.GetAuthTokenA();
 
-            var controller = new DataServiceController(steamService);
+            var controller = new DataServiceController(steamService, matchDataService);
             var authDataHex = HexUtil.ToHexString(authData.authToken);
             //var result = (JsonResult) await controller.AuthTest(authData.steamIdValue, authDataHex);
             var result = (JsonResult) await controller.GetSteamAuthentication(authDataHex);
@@ -103,7 +110,6 @@ namespace iBotSotALambda.Tests
 
             using var httpClient = new HttpClient();
             var authDataHex = HexUtil.ToHexString(authData.authToken);
-
             
             var url = $"https://partner.steam-api.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key={SteamWebApiKey}&appid={SteamAppId}&ticket={authDataHex}";
             var response = await httpClient.GetAsync(url);
@@ -114,7 +120,7 @@ namespace iBotSotALambda.Tests
 
         [Fact]
         [Trait("TestType", "Integration")]
-        public async Task DevServerAuthenticateJsonTest()
+        public async Task DevServerLambdaAuthenticateJsonTest()
         {
             var container = new Container();
             container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
@@ -129,7 +135,7 @@ namespace iBotSotALambda.Tests
             using var httpClient = new HttpClient();
             var authDataHex = HexUtil.ToHexString(authData.authToken);
             //var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
-            var url = $"https://lambda-dev-ibotsota.theball.me/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var url = $"https://lambda-dev.ibotsota.net/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
             var response = await httpClient.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
             
@@ -137,13 +143,202 @@ namespace iBotSotALambda.Tests
             Assert.StartsWith("{\"isAuthenticated\":true,\"steamId\":", content);
         }
 
+        [Fact]
+        [Trait("TestType", "Integration")]
+        public async Task DevServerFargateAuthenticateJsonTest()
+        {
+            var container = new Container();
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+
+            steamService.InitSteamClient();
+            var authData = await steamService.GetAuthTokenA();
+
+            using var httpClient = new HttpClient();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
+            //var url = $"{LambdaEndpointUrl}/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var url = $"https://fg-dev.ibotsota.net/api/DataService/GetSteamAuthentication?authDataHex={authDataHex}";
+            var response = await httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+
+
+            Assert.StartsWith("{\"isAuthenticated\":true,\"steamId\":", content);
+        }
+
+        [Fact]
+        public async Task SendGameDataTest()
+        {
+            var container = new Container();
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+            steamService.InitSteamClient();
+
+            var matchDataService = container.Resolve<IMatchDataService>();
+
+            var controller = new DataServiceController(steamService, matchDataService);
+            var authData = await steamService.GetAuthTokenA();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
+
+
+            var steamId = authData.steamIdValue;
+            var matchData = new MatchData()
+            {
+                ClientInfo = new ClientInfo()
+                {
+                    SteamId = steamId,
+                    ClientName = nameof(SendGameDataTest)
+                },
+                MatchEndTime = DateTime.Now,
+                MatchStartTime = DateTime.Now.AddMinutes(-2),
+                ChamberDatas = new List<ChamberData>()
+                {
+                    new ChamberData()
+                    {
+                        ChamberNo = 0,
+                        Duration = TimeSpan.FromSeconds(10),
+                        PlayerDatas = new List<PlayerChamberData>()
+                        {
+                            new PlayerChamberData()
+                            {
+                                Name = "RealPlayerName",
+                                Performance = new PlayerPerformance()
+                                {
+                                    HeadshotHits = 10,
+                                    Hits = 10,
+                                    Shots = 30,
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            //using var compressedData = new MemoryStream();
+            //using GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal);
+            //await ServiceCore.ToJsonStreamAsync(compStream, matchData);
+            //await compStream.FlushAsync();
+            //var matchBinaryData = compressedData.ToArray();
+
+
+            var result = await controller.SubmitMatchDataFunc(authDataHex, matchData);
+        }
+
+        [Fact]
+        public async Task DevServerFargateSendGameDataTest()
+        {
+            var baseUrl = "https://fg-dev.ibotsota.net/api/DataService/SubmitMatchData?authDataHex=";
+
+            var response = await postGameDataToUrl(baseUrl, true);
+
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        }
+
+
+        [Fact]
+        public async Task DevServerLambdaSendGameDataTest()
+        {
+            var baseUrl = "https://lambda-dev.ibotsota.net/api/DataService/SubmitMatchData?authDataHex=";
+
+
+            string authDataHex;
+            var response = await postGameDataToUrl(baseUrl, true);
+
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        }
+
+        private async Task<HttpResponseMessage> postGameDataToUrl(string baseUrl, bool useGzip = true, [CallerMemberName] string callerName = null)
+        {
+            var container = new Container();
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+            steamService.InitSteamClient();
+
+            var matchDataService = container.Resolve<IMatchDataService>();
+
+            var controller = new DataServiceController(steamService, matchDataService);
+            var authData = await steamService.GetAuthTokenA();
+            var authDataHex = HexUtil.ToHexString(authData.authToken);
+
+            var url = baseUrl + authDataHex;
+
+            var steamId = authData.steamIdValue;
+            var matchData = new MatchData()
+            {
+                ClientInfo = new ClientInfo()
+                {
+                    SteamId = steamId,
+                    ClientName = callerName ?? nameof(postGameDataToUrl)
+                },
+                MatchEndTime = DateTime.Now,
+                MatchStartTime = DateTime.Now.AddMinutes(-2),
+                ChamberDatas = new List<ChamberData>()
+                {
+                    new ChamberData()
+                    {
+                        ChamberNo = 0,
+                        Duration = TimeSpan.FromSeconds(10),
+                        PlayerDatas = new List<PlayerChamberData>()
+                        {
+                            new PlayerChamberData()
+                            {
+                                Name = "RealPlayerName",
+                                Performance = new PlayerPerformance()
+                                {
+                                    HeadshotHits = 10,
+                                    Hits = 10,
+                                    Shots = 30,
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            using var compressedData = new MemoryStream();
+
+            if (useGzip)
+            {
+                using (GZipStream compStream = new GZipStream(compressedData, CompressionLevel.Optimal, true))
+                {
+                    await ServiceCore.ToJsonStreamAsync(compStream, matchData);
+                    compStream.Flush();
+                }
+            }
+            else
+            {
+                await ServiceCore.ToJsonStreamAsync(compressedData, matchData);
+            }
+
+            var matchBinaryData = compressedData.ToArray();
+
+            using var httpClient = new HttpClient();
+
+            var httpContent = new ByteArrayContent(matchBinaryData);
+            httpContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            if(useGzip)
+                httpContent.Headers.ContentEncoding.Add("gzip");
+
+            var response = await httpClient.PostAsync(url, httpContent);
+            return response;
+        }
 
 
         public async Task InitializeAsync()
         {
             var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
             var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
-            var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
+            var steamWebApiKey = await parameterClient.GetValueAsync("ibotsota-steamwebapikey");
             SteamAppId = uint.Parse(steamAppId);
             SteamWebApiKey = steamWebApiKey;
 
@@ -164,5 +359,5 @@ namespace iBotSotALambda.Tests
         {
         }
     }
-
-}
+    
+ }
