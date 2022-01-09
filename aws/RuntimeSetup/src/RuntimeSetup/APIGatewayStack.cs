@@ -15,7 +15,7 @@ namespace RuntimeSetup
             var envName = envDetails.EnvSuffix;
             var domainName = $"lambda-{envName}.{zoneName}";
             var apiIdName = $"{envDetails.AppPrefix}-api-{envDetails.EnvSuffix}";
-            string hostedZoneID = "Z01085715K1SNU0AXFAU";
+            string hostedZoneID = Constant.HostedZoneID;
             var hostedZone = HostedZone.FromHostedZoneAttributes(stack, $"hostedzone-{zoneName}",
                 new HostedZoneAttributes()
                 {
@@ -39,7 +39,7 @@ namespace RuntimeSetup
                             HostedZone = hostedZone
                         })
                 },
-                MinimumCompressionSize = 0
+                //MinimumCompressionSize = 0
             });
 
             var cNameID = $"cname-{domainName}";

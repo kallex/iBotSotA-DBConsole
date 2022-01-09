@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.XRay.Recorder.Core;
+using Anemonis.AspNetCore.RequestDecompression;
 using AWSDataServices;
 using Services;
 using DryIoc;
@@ -22,6 +23,8 @@ namespace iBotSotALambda
 {
     public class Startup
     {
+        public static bool IsRunningInLambda;
+
         public static string SteamServiceState;
         public static uint SteamAppId;
         public static string SteamWebApiKey;
@@ -37,6 +40,16 @@ namespace iBotSotALambda
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+            if (!IsRunningInLambda)
+            {
+                services.AddRequestDecompression(options =>
+                {
+                    options.Providers.Add<GzipDecompressionProvider>();
+                    options.Providers.Add<DeflateDecompressionProvider>();
+                    options.Providers.Add<BrotliDecompressionProvider>();
+                });
+                services.AddResponseCompression();
+            }
             services.AddControllers();
         }
 
@@ -83,9 +96,13 @@ namespace iBotSotALambda
             }
 
             app.UseHttpsRedirection();
+            if (!IsRunningInLambda)
+            {
+                app.UseRequestDecompression();
+                app.UseResponseCompression();
+            }
 
             app.UseRouting();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
