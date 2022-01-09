@@ -17,7 +17,7 @@ namespace RuntimeSetup
     public class FargateStack
     {
 
-        public static ApplicationLoadBalancedFargateService Setup(Stack stack, StackDependency dependencyInfo, EnvironmentDetails envDetails,
+        public static ApplicationLoadBalancedFargateService SetupALBConstruct(Stack stack, SharedConstructs dependencyInfo, EnvironmentDetails envDetails,
             string buildNumber)
         {
             var idName = $"{envDetails.AppPrefix}-fg-AspNetCore-{envDetails.EnvSuffix}";
@@ -93,7 +93,7 @@ namespace RuntimeSetup
             return fargateService;
         }
 
-        public static FargateService SetupFG(Stack stack, StackDependency dependencyInfo, EnvironmentDetails envDetails,
+        public static FargateService Setup(Stack stack, SharedConstructs sharedConstructs, EnvironmentDetails envDetails,
             string buildNumber)
         {
             var idName = $"{envDetails.AppPrefix}-fg-AspNetCore-{envDetails.EnvSuffix}";
@@ -102,6 +102,7 @@ namespace RuntimeSetup
 
             buildNumber ??= "BUILD_NUMBER";
 
+            /*
             var vpcId = $"fgvpc";
             var clusterId = $"fgcluster";
 
@@ -117,18 +118,15 @@ namespace RuntimeSetup
                 EnableFargateCapacityProviders = true,
                 ContainerInsights = true,
             });
+            */
 
-            var zoneName = "ibotsota.net";
+            var vpc = sharedConstructs.Vpc;
+            var cluster = sharedConstructs.Cluster;
+            var hostedZone = sharedConstructs.HostedZone;
+
+            var zoneName = hostedZone.ZoneName;
             var domainName = $"fg-{envName}.{zoneName}";
             var fargateIdName = $"{envDetails.AppPrefix}-fg-{envDetails.EnvSuffix}";
-
-            string hostedZoneID = Constant.HostedZoneID;
-            var hostedZone = HostedZone.FromHostedZoneAttributes(stack, $"hostedzone-{zoneName}-fargate",
-                new HostedZoneAttributes()
-                {
-                    HostedZoneId = hostedZoneID,
-                    ZoneName = zoneName
-                });
 
             // Create a public IP Fargate service and make it public
             string fargateTaskId = "fg-task";
@@ -165,51 +163,13 @@ namespace RuntimeSetup
                 ContainerPort = 80
             });
 
-            var dnsCert = new DnsValidatedCertificate(stack, $"cert-ibotsota-{envName}-fargate",
-                new DnsValidatedCertificateProps()
-                {
-                    DomainName = domainName,
-                    HostedZone = hostedZone
-                });
+            var targetGroup = sharedConstructs.TargetGroup;
 
-
-            string albId = fargateIdName + "-LB";
-            var alb = new ApplicationLoadBalancer(stack, albId, new ApplicationLoadBalancerProps()
-            {
-                InternetFacing = true,
-                Vpc = vpc,
-            });
-
-            var listener = alb.AddListener("listener", new BaseApplicationListenerProps()
-            {
-                Protocol = ApplicationProtocol.HTTPS,
-                Certificates = new IListenerCertificate[]
-                {
-                    new ListenerCertificate(dnsCert.CertificateArn)
-                },
-                Open = true,
-            });
-
-            var targetGroup = listener.AddTargets("lbTarget", new AddApplicationTargetsProps()
-            {
-                Protocol = ApplicationProtocol.HTTP,
-                Port = 80,
-            });
             targetGroup.AddTarget(fargateService);
 
             var managedPolicyID = $"{idName}-Policy";
 
             fargateService.TaskDefinition.TaskRole.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(stack, managedPolicyID, "arn:aws:iam::394301006475:policy/iBotSotA-OperatorPolicy"));
-
-            var cNameID = $"cname-{domainName}";
-            var route53 = new CnameRecord(stack, cNameID, new CnameRecordProps()
-            {
-                RecordName = domainName,
-                Ttl = Duration.Minutes(5),
-                DomainName = alb.LoadBalancerDnsName,
-                Zone = hostedZone,
-                Comment = "CloudFormation Stack maintained"
-            });
 
             return fargateService;
         }

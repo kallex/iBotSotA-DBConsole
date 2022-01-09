@@ -9,7 +9,7 @@ namespace RuntimeSetup
 {
     public static class APIGatewayStack
     {
-        public static RestApi Setup(Stack stack, StackDependency dependencyInfo, EnvironmentDetails envDetails, Function lambdaFunction)
+        public static RestApi Setup(Stack stack, EnvironmentDetails envDetails, Function lambdaFunction)
         {
             var zoneName = "ibotsota.net";
             var envName = envDetails.EnvSuffix;
@@ -22,7 +22,6 @@ namespace RuntimeSetup
                     HostedZoneId = hostedZoneID,
                     ZoneName = zoneName
                 });
-            dependencyInfo.HostedZone = hostedZone;
             var api = new LambdaRestApi(stack, apiIdName, new LambdaRestApiProps()
             {
                 Handler = lambdaFunction,

@@ -10,7 +10,7 @@ namespace RuntimeSetup
 {
     public class LambdaStack
     {
-        public static Function Setup(Stack stack, StackDependency stackDependency, EnvironmentDetails envDetails,
+        public static Function Setup(Stack stack, EnvironmentDetails envDetails,
             string buildNumber)
         {
             var idName = $"{envDetails.AppPrefix}-AspNetCore-{envDetails.EnvSuffix}";
