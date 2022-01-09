@@ -110,7 +110,7 @@ namespace iBotSotALambda
                 endpoints.MapControllers();
                 endpoints.MapFallback("{*url}", async context =>
                 {
-                    await context.Response.WriteAsync($"Request path: {context.Request.Path}");
+                    await context.Response.WriteAsync($"Request: {DateTime.UtcNow} Path: {context.Request.Path}");
                 });
             });
 
