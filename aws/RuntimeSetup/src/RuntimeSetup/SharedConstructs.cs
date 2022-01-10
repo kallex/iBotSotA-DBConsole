@@ -14,6 +14,6 @@ namespace RuntimeSetup
         public ICluster Cluster { get; set; }
         public IVpc Vpc { get; set; }
         public ApplicationLoadBalancer LoadBalancer { get; set; }
-        public ApplicationTargetGroup TargetGroup { get; set; }
+        public Dictionary<string, ApplicationTargetGroup> TargetGroupDict { get; set; }
     }
 }
