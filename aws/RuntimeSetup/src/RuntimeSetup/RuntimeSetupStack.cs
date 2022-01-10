@@ -97,8 +97,10 @@ namespace RuntimeSetup
             Dictionary<string, ApplicationTargetGroup> targetGroupDict =
                 new Dictionary<string, ApplicationTargetGroup>();
 
-            List<IListenerCertificate> listenerCerts = new List<IListenerCertificate>();
 
+            var listenerId = $"shr-listener";
+
+            List<IListenerCertificate> listenerCerts = new List<IListenerCertificate>();
             foreach (var envName in sharedEnvironments)
             {
                 var domainName = $"fg-{envName}.{zoneName}";
@@ -123,20 +125,38 @@ namespace RuntimeSetup
                 });
             }
 
-            var listenerId = $"shr-listener";
             var listener = loadBalancer.AddListener(listenerId, new BaseApplicationListenerProps()
             {
                 Protocol = ApplicationProtocol.HTTPS,
                 Certificates = listenerCerts.ToArray(),
                 Open = true,
             });
-            var targetGroupId = $"shr-target";
-            var targetGroup = listener.AddTargets(targetGroupId, new AddApplicationTargetsProps()
+
+            double? priorityIndex = 1;
+            foreach (var envName in sharedEnvironments)
+            {
+                var targetGroupId = $"{envName}-shr-target";
+                var domainName = $"fg-{envName}.{zoneName}";
+ 
+                var targetGroup = listener.AddTargets(targetGroupId, new AddApplicationTargetsProps()
+                {
+                    Protocol = ApplicationProtocol.HTTP,
+                    Port = 80,
+                    Conditions = new ListenerCondition[]
+                    {
+                        ListenerCondition.HostHeaders(new string[] { domainName })
+                    },
+                    Priority = priorityIndex++,
+                });
+                targetGroupDict.Add(envName, targetGroup);
+                priorityIndex++;
+            }
+
+            listener.AddTargets("shr-default-target", new AddApplicationTargetsProps()
             {
                 Protocol = ApplicationProtocol.HTTP,
-                Port = 80,
+                Port = 80
             });
-            //targetGroupDict.Add(envName, targetGroup);
 
             var sharedConstructs = new SharedConstructs
             {
@@ -145,7 +165,7 @@ namespace RuntimeSetup
                 Vpc = vpc,
                 HostedZone = hostedZone,
                 LoadBalancer = loadBalancer,
-                TargetGroup = targetGroup
+                TargetGroupDict = targetGroupDict
             };
 
 
