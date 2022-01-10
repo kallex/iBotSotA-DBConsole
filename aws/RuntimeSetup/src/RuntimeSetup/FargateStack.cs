@@ -125,7 +125,6 @@ namespace RuntimeSetup
             var hostedZone = sharedConstructs.HostedZone;
 
             var zoneName = hostedZone.ZoneName;
-            var domainName = $"fg-{envName}.{zoneName}";
             var fargateIdName = $"{envDetails.AppPrefix}-fg-{envDetails.EnvSuffix}";
 
             // Create a public IP Fargate service and make it public
