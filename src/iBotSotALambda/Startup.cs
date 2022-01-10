@@ -108,9 +108,9 @@ namespace iBotSotALambda
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapGet("/", async context =>
+                endpoints.MapFallback("{*url}", async context =>
                 {
-                    await context.Response.WriteAsync($"Welcome to running ASP.NET Core on AWS Lambda {DateTime.Now} - {SteamServiceState}");
+                    await context.Response.WriteAsync($"Request: {DateTime.UtcNow} Path: {context.Request.Path}");
                 });
             });
 

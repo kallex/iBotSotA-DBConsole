@@ -163,7 +163,7 @@ namespace RuntimeSetup
                 ContainerPort = 80
             });
 
-            var targetGroup = sharedConstructs.TargetGroup;
+            var targetGroup = sharedConstructs.TargetGroupDict[envName];
 
             targetGroup.AddTarget(fargateService);
 
