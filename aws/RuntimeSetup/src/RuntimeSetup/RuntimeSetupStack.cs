@@ -56,14 +56,6 @@ namespace RuntimeSetup
             var clusterId = $"fgcluster";
 
             var stack = new Stack(app, id, props);
-            /*
-            return new SharedConstructs()
-            {
-                Stack = stack,
-            };
-            */
-            //return null;
-
             var vpc = new Vpc(stack, vpcId, new VpcProps
             {
                 MaxAzs = 2, // Default is all AZs in region
@@ -103,7 +95,7 @@ namespace RuntimeSetup
             List<IListenerCertificate> listenerCerts = new List<IListenerCertificate>();
             foreach (var envName in sharedEnvironments)
             {
-                var domainName = $"fg-{envName}.{zoneName}";
+                var domainName = $"{envName}.{zoneName}";
 
                 var dnsCert = new DnsValidatedCertificate(stack, $"cert-ibotsota-{envName}-fargate",
                     new DnsValidatedCertificateProps()
@@ -136,7 +128,7 @@ namespace RuntimeSetup
             foreach (var envName in sharedEnvironments)
             {
                 var targetGroupId = $"{envName}-shr-target";
-                var domainName = $"fg-{envName}.{zoneName}";
+                var domainName = $"{envName}.{zoneName}";
  
                 var targetGroup = listener.AddTargets(targetGroupId, new AddApplicationTargetsProps()
                 {
