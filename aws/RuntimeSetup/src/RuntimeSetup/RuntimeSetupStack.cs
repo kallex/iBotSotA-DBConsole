@@ -66,7 +66,7 @@ namespace RuntimeSetup
             {
                 Vpc = vpc,
                 EnableFargateCapacityProviders = true,
-                ContainerInsights = true,
+                ContainerInsights = false,
             });
 
             var zoneName = "ibotsota.net";
