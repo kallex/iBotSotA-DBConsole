@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
 using Utf8Json;
 
@@ -42,6 +43,20 @@ namespace Services
         public static async Task ToJsonStreamAsync(Stream stream, object data)
         {
             await JsonSerializer.SerializeAsync(stream, data);
+        }
+
+        public static byte[] GZipData(byte[] data)
+        {
+            using (var memStream = new MemoryStream())
+            {
+                using (var gzipStream = new GZipStream(memStream, CompressionLevel.Optimal))
+                {
+                    gzipStream.Write(data, 0, data.Length);
+                    gzipStream.Flush();
+                    gzipStream.Close();
+                }
+                return memStream.ToArray();
+            }
         }
 
         public static string GetRuntimeEnvironment()

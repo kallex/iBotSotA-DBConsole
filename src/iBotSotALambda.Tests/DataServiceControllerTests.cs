@@ -210,10 +210,32 @@ namespace iBotSotALambda.Tests
                                 Name = "RealPlayerName",
                                 Performance = new PlayerPerformance()
                                 {
-                                    HeadshotHits = 10,
+                                    HeadShotHits = 10,
                                     Hits = 10,
                                     Shots = 30,
                                 }
+                            }
+                        },
+                        PositionalDatas = new List<PositionalData>()
+                        {
+                            new PositionalData()
+                            {
+                                FrameNumber = 1,
+                                Name = "testname",
+                                Position = new Vec3()
+                                {
+                                    X = 1.0f,
+                                    Y = 2.0f,
+                                    Z = 3.0f
+                                },
+                                Rotation = new Quart4()
+                                {
+                                    X = 10,
+                                    Y = 20,
+                                    Z = 30,
+                                    W = 40
+                                },
+                                TimeStamp = DateTime.Now
                             }
                         }
                     }
@@ -295,7 +317,7 @@ namespace iBotSotALambda.Tests
                                 Name = "RealPlayerName",
                                 Performance = new PlayerPerformance()
                                 {
-                                    HeadshotHits = 10,
+                                    HeadShotHits = 10,
                                     Hits = 10,
                                     Shots = 30,
                                 }
