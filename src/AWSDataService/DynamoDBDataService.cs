@@ -16,44 +16,54 @@ namespace AWSDataServices
 {
     public class DynamoDBDataService : IGenericDataService, IMatchDataService
     {
+        public IDiagnosticService DiagnosticService { get; set; }
+
+        public DynamoDBDataService(IDiagnosticService diagnosticService)
+        {
+            this.DiagnosticService = diagnosticService;
+        }
+
         public async Task StoreMatchData(MatchData matchData)
         {
-            var dynamoClient = new AmazonDynamoDBClient(Config.CurrentRegion);
-            matchData.AccountID = $"STM:{matchData.ClientInfo.SteamId}";
-            var matchID = Guid.NewGuid().ToString("N");
-            matchData.ItemID = matchID;
-
-            var fullMatchDataJson = ServiceCore.ToJsonString(matchData);
-
-            var reducedMatchData = ServiceCore.FromJson<MatchData>(fullMatchDataJson);
-            reducedMatchData.ChamberDatas.ForEach(item  => item.PositionalDatas.Clear());
-
-            var reducedMatchDataJson = ServiceCore.ToJsonString(reducedMatchData);
-
-            var matchDataDoc = Document.FromJson(reducedMatchDataJson);
-            
-            var runtimeEnvironment= ServiceCore.GetRuntimeEnvironment();
-            var tableName = $"ibotsota-Account-{runtimeEnvironment}";
-
-            var table = Table.LoadTable(dynamoClient, tableName);
-            await table.PutItemAsync(matchDataDoc);
-
-            var s3service = new S3DataService(Config.CurrentRegion);
-            var binaryJson = Encoding.UTF8.GetBytes(fullMatchDataJson);
-            var gzippedData = ServiceCore.GZipData(binaryJson);
-
-            var bucketName = $"ibotsota-{runtimeEnvironment}";
-
-            using (var memStream = new MemoryStream(gzippedData))
+            await DiagnosticService.ExecAsync(nameof(DynamoDBDataService), async diagnosticService =>
             {
-                await s3service.S3Client.PutObjectAsync(new PutObjectRequest()
+
+                var dynamoClient = new AmazonDynamoDBClient(Config.CurrentRegion);
+                matchData.AccountID = $"STM:{matchData.ClientInfo.SteamId}";
+                var matchID = Guid.NewGuid().ToString("N");
+                matchData.ItemID = matchID;
+
+                var fullMatchDataJson = ServiceCore.ToJsonString(matchData);
+
+                var reducedMatchData = ServiceCore.FromJson<MatchData>(fullMatchDataJson);
+                reducedMatchData.ChamberDatas.ForEach(item => item.PositionalDatas.Clear());
+
+                var reducedMatchDataJson = ServiceCore.ToJsonString(reducedMatchData);
+
+                var matchDataDoc = Document.FromJson(reducedMatchDataJson);
+
+                var runtimeEnvironment = ServiceCore.GetRuntimeEnvironment();
+                var tableName = $"ibotsota-Account-{runtimeEnvironment}";
+
+                var table = Table.LoadTable(dynamoClient, tableName);
+                await table.PutItemAsync(matchDataDoc);
+
+                var s3service = new S3DataService(Config.CurrentRegion);
+                var binaryJson = Encoding.UTF8.GetBytes(fullMatchDataJson);
+                var gzippedData = ServiceCore.GZipData(binaryJson);
+
+                var bucketName = $"ibotsota-{runtimeEnvironment}";
+                using (var memStream = new MemoryStream(gzippedData))
                 {
-                    BucketName = bucketName,
-                    Key = $"MatchData-{matchID}.json.gz",
-                    ContentType = "application/gzip",
-                    InputStream = memStream
-                });
-            }
+                    await s3service.S3Client.PutObjectAsync(new PutObjectRequest()
+                    {
+                        BucketName = bucketName,
+                        Key = $"MatchData-{matchID}.json.gz",
+                        ContentType = "application/gzip",
+                        InputStream = memStream
+                    });
+                }
+            });
         }
     }
 }
