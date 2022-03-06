@@ -33,7 +33,8 @@ namespace iBotSotALambda
                 .UseServiceProviderFactory(new DryIocServiceProviderFactory())
                 .ConfigureContainer<Container>((hostContext, container) =>
                 {
-                    container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+                    //container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+                    container.Register<IDiagnosticService, AWSXRayService>(Reuse.Singleton);
                     container.Register<ISteamService, SteamServices.SteamService>(Reuse.Singleton);
                     container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
