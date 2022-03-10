@@ -222,6 +222,7 @@ namespace iBotSotALambda.Tests
                             {
                                 FrameNumber = 1,
                                 Name = "testname",
+                                InstanceID = 1,
                                 Position = new Vec3()
                                 {
                                     X = 1.0f,

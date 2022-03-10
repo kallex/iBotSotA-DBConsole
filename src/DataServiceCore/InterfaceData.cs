@@ -35,9 +35,9 @@ namespace DataServiceCore
     public class PositionalData
     {
         public string Name { get; set; }
+        public int InstanceID { get; set; }
         public DateTime TimeStamp { get; set; }
         public int FrameNumber { get; set; }
-
         public Vec3 Position { get; set; }
         public Quart4 Rotation { get; set; }
     }
