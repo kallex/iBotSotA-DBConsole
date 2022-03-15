@@ -78,7 +78,7 @@ namespace Services
             var sourceBytes = byteEnumerable.ToArray();
             var originalData = new byte[originalFloatCount * sizeof(float)];
             ZfpNative.Decompress(sourceBytes, originalData, out var fieldType, out var unitCount);
-            originalData = originalData.Take((int) unitCount).ToArray();
+            //originalData = originalData.Take((int) unitCount).ToArray();
             var originalFloats = MemoryMarshal.Cast<byte, float>(originalData).ToArray();
             return originalFloats;
         }

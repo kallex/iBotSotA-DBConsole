@@ -12,7 +12,7 @@ namespace iBotSotALambda.Tests
     public class DataServiceCoreTests
     {
         [Fact]
-        public void FloatCompression_VectorToleranceTest()
+        public void FloatCompression_VectorPackTest()
         {
             const double Tolerance = 0.01;
             Vec3[] vectors = getCompressionTestVectors(1000);
@@ -31,6 +31,56 @@ namespace iBotSotALambda.Tests
             var packedRatio = packedFloatBytes.Length * 100.0 / originalFloatBytes.Length;
             Assert.True(packedRatio < 50, "packedRatio < 50");
         }
+
+
+        [Fact]
+        public void FloatCompression_VectorToleranceTest()
+        {
+            //const double Tolerance = 0.01;
+            const double Tolerance = 1.0;
+            Vec3[] originalVectors = getCompressionTestVectors(1000);
+
+            var originalFloats = originalVectors.Select(item => item.X)
+                .Concat(originalVectors.Select(item => item.Y))
+                .Concat(originalVectors.Select(item => item.Z)).ToArray();
+
+            var originalFloatSpan = new Span<float>(originalFloats);
+            var originalFloatBytes = MemoryMarshal.AsBytes(originalFloatSpan).ToArray();
+
+            var packedFloats = FloatCompression.CompressVectors(originalVectors, Tolerance);
+            var packedFloatBytes = packedFloats.packedX.Concat(packedFloats.packedY).Concat(packedFloats.packedZ)
+                .ToArray();
+
+            var unpackedVectors = FloatCompression.DecompressVectors(packedFloats, originalVectors.Length);
+
+            var packedRatio = packedFloatBytes.Length * 100.0 / originalFloatBytes.Length;
+            var toleranceDiffs = originalVectors.SelectMany((vec, ix) =>
+            {
+                var unpackedVec = unpackedVectors[ix];
+                return new[]
+                {
+                    Math.Abs(vec.X - unpackedVec.X),
+                    Math.Abs(vec.Y - unpackedVec.Y),
+                    Math.Abs(vec.Z - unpackedVec.Z)
+                };
+            }).ToArray();
+            var relativeToleranceDiffs = originalVectors.SelectMany((vec, ix) =>
+            {
+                var unpackedVec = unpackedVectors[ix];
+                return new[]
+                {
+                    Math.Abs(vec.X - unpackedVec.X),
+                    Math.Abs(vec.Y - unpackedVec.Y),
+                    Math.Abs(vec.Z - unpackedVec.Z)
+                };
+            }).ToArray();
+
+            var avgTolerance = toleranceDiffs.Average();
+            var maxTolerance = toleranceDiffs.Max();
+            var minTolerance = toleranceDiffs.Min();
+            //Assert.True(packedRatio < 50, "packedRatio < 50");
+        }
+
 
         private Vec3[] getCompressionTestVectors(int count)
         {

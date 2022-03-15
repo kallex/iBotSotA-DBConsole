@@ -56,8 +56,6 @@ namespace iBotSotALambda
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseXRay("iBotSotA");
-
             bool customExceptionHandling = false;
 
             if (env.IsDevelopment())
@@ -94,7 +92,7 @@ namespace iBotSotALambda
                     });
                 });
             }
-
+            app.UseXRay("iBotSotA");
             app.UseHttpsRedirection();
             if (!IsRunningInLambda)
             {
