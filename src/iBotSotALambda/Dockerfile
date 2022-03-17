@@ -7,5 +7,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:3.1
 #COPY xray /usr/bin/xray-daemon
 COPY . app/
 WORKDIR /app
-ENTRYPOINT ["dotnet", "iBotSotALambda.dll"]
-#ENTRYPOINT ["/entrypoint.sh"]
+#ENTRYPOINT ["dotnet", "iBotSotALambda.dll"]
+ENTRYPOINT ["/entrypoint.sh"]
