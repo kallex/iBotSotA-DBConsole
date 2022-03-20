@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.XRay.Recorder.Core;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Anemonis.AspNetCore.RequestDecompression;
 using AWSDataServices;
 using Services;
@@ -93,6 +94,7 @@ namespace iBotSotALambda
                 });
             }
             app.UseXRay("iBotSotA");
+            AWSSDKHandler.RegisterXRayForAllServices();
             app.UseHttpsRedirection();
             if (!IsRunningInLambda)
             {
