@@ -22,9 +22,9 @@ namespace RuntimeSetup
                     ResourceArn = "*",
                     RuleName = ruleName,
                     Host = hostName,
-                    ReservoirSize = 12,
+                    ReservoirSize = 10,
                     FixedRate = 0.05,
-                    Priority = 111,
+                    Priority = 100,
                     Version = 1,
                 }
             });
