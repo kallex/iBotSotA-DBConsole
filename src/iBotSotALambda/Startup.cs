@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,7 +26,7 @@ namespace iBotSotALambda
     public class Startup
     {
         public static bool IsRunningInLambda;
-
+        public static IDiagnosticService CurrentDiagnosticService;
         public static string SteamServiceState;
         public static uint SteamAppId;
         public static string SteamWebApiKey;
@@ -102,8 +103,24 @@ namespace iBotSotALambda
                 app.UseResponseCompression();
             }
 
+
             app.UseRouting();
             app.UseAuthorization();
+
+            app.Use(async (context, next) =>
+            {
+                var routeData = context.GetRouteData();
+                var routeValues = routeData.Values;
+                if (routeValues.TryGetValue("controller", out var controller) &&
+                    routeValues.TryGetValue("action", out var action) && CurrentDiagnosticService != null)
+                {
+                    await CurrentDiagnosticService.ExecAsync((string) controller, async diagSvc =>
+                    {
+                        await next.Invoke();
+                    }, (string) action);
+                } else
+                    await next.Invoke();
+            });
 
             app.UseEndpoints(endpoints =>
             {

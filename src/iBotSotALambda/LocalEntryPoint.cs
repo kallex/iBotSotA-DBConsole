@@ -38,6 +38,9 @@ namespace iBotSotALambda
                     container.Register<ISteamService, SteamServices.SteamService>(Reuse.Singleton);
                     container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
 
+                    var diagnosticService = container.Resolve<IDiagnosticService>();
+                    Startup.CurrentDiagnosticService = diagnosticService;
+
                     var steamService = container.Resolve<ISteamService>();
                     var parameterClient = new AwsParameterStoreClient(RegionEndpoint.EUWest1);
                     uint SteamAppId = default;
