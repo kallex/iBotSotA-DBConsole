@@ -45,6 +45,8 @@ namespace RuntimeSetup
 
             var fargate = FargateStack.Setup(stack, sharedConstruct, envDetails, buildNumber);
 
+            var xray = XRayStack.Setup(stack, envDetails);
+
             // The code that defines your stack goes here
 
         }
