@@ -68,7 +68,7 @@ namespace iBotSotALambda
                     var asyncTask = Task.Run(async () =>
                     {
                         var steamAppId = await parameterClient.GetValueAsync("ibotsota-steamappid");
-                        var steamWebApiKey = await parameterClient.GetValueAsync("	ibotsota-steamwebapikey");
+                        var steamWebApiKey = await parameterClient.GetValueAsync("ibotsota-steamwebapikey");
                         SteamAppId = uint.Parse(steamAppId);
                         SteamWebApiKey = steamWebApiKey;
                     });

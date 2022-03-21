@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.XRay.Recorder.Core;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Anemonis.AspNetCore.RequestDecompression;
 using AWSDataServices;
 using Services;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +26,7 @@ namespace iBotSotALambda
     public class Startup
     {
         public static bool IsRunningInLambda;
-
+        public static IDiagnosticService CurrentDiagnosticService;
         public static string SteamServiceState;
         public static uint SteamAppId;
         public static string SteamWebApiKey;
@@ -56,8 +58,6 @@ namespace iBotSotALambda
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseXRay("iBotSotA");
-
             bool customExceptionHandling = false;
 
             if (env.IsDevelopment())
@@ -94,7 +94,8 @@ namespace iBotSotALambda
                     });
                 });
             }
-
+            app.UseXRay("iBotSotA");
+            AWSSDKHandler.RegisterXRayForAllServices();
             app.UseHttpsRedirection();
             if (!IsRunningInLambda)
             {
@@ -102,8 +103,24 @@ namespace iBotSotALambda
                 app.UseResponseCompression();
             }
 
+
             app.UseRouting();
             app.UseAuthorization();
+
+            app.Use(async (context, next) =>
+            {
+                var routeData = context.GetRouteData();
+                var routeValues = routeData.Values;
+                if (routeValues.TryGetValue("controller", out var controller) &&
+                    routeValues.TryGetValue("action", out var action) && CurrentDiagnosticService != null)
+                {
+                    await CurrentDiagnosticService.ExecAsync((string) controller, async diagSvc =>
+                    {
+                        await next.Invoke();
+                    }, (string) action);
+                } else
+                    await next.Invoke();
+            });
 
             app.UseEndpoints(endpoints =>
             {

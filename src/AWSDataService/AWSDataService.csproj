@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.1.1" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.8.4" />
     <PackageReference Include="AWSSDK.TimestreamQuery" Version="3.7.1.1" />
     <PackageReference Include="AWSSDK.TimestreamWrite" Version="3.7.1.1" />
     <PackageReference Include="AWSXRayRecorder" Version="2.10.1" />

@@ -2,18 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AWSDataServices;
 using Microsoft.AspNetCore.Mvc;
+using Services;
 
 namespace iBotSotALambda.Controllers
 {
     [Route("api/[controller]")]
     public class ValuesController : ControllerBase
     {
+        public ValuesController(IDiagnosticService diagnosticService)
+        {
+            this.DiagnosticService = diagnosticService;
+        }
+
+        public IDiagnosticService DiagnosticService { get; set; }
+
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            var result = DiagnosticService.Exec(nameof(ValuesController), diag =>
+            {
+                return new string[] { "value1", "value2" };
+            });
+            return result;
         }
 
         // GET api/values/5
