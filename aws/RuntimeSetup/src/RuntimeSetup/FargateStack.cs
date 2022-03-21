@@ -60,6 +60,10 @@ namespace RuntimeSetup
                     TaskImageOptions = new ApplicationLoadBalancedTaskImageOptions
                     {
                         Image = ContainerImage.FromAsset(@"..\..\departdir"),
+                        Environment = new Dictionary<string, string>()
+                        {
+                            { "Environment", envDetails.EnvSuffix }
+                        },
                     },
                     MemoryLimitMiB = 1024,      
                     Cpu = 256,
