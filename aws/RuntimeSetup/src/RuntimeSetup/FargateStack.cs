@@ -7,6 +7,7 @@ using Amazon.CDK.AWS.ECS;
 using Amazon.CDK.AWS.ECS.Patterns;
 using Amazon.CDK.AWS.ElasticLoadBalancingV2;
 using Amazon.CDK.AWS.IAM;
+using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.S3;
 using ApplicationLoadBalancerProps = Amazon.CDK.AWS.ElasticLoadBalancingV2.ApplicationLoadBalancerProps;
@@ -100,7 +101,7 @@ namespace RuntimeSetup
 
             var envName = envDetails.EnvSuffix;
 
-            buildNumber ??= "BUILD_NUMBER";
+            //buildNumber ??= Constant.CustomBuildNumber;
 
             /*
             var vpcId = $"fgvpc";
@@ -154,6 +155,16 @@ namespace RuntimeSetup
             var container = fargateService.TaskDefinition.AddContainer(containerId, new ContainerDefinitionOptions()
             {
                 Image = ContainerImage.FromAsset(@"..\..\departdir"),
+                Logging = LogDriver.AwsLogs(new AwsLogDriverProps()
+                {
+                    LogGroup = new LogGroup(stack, $"fg-{envDetails.EnvSuffix}-log", new LogGroupProps()
+                    {
+                        LogGroupName = $"/aws/fargate/{envDetails.AppPrefix}-{envDetails.EnvSuffix}",
+                        Retention = RetentionDays.ONE_WEEK
+                    }),
+                    Mode = AwsLogDriverMode.NON_BLOCKING,
+                    StreamPrefix = $"{envDetails.AppPrefix}-{envDetails.EnvSuffix}"
+                })
             });
 
             container.AddPortMappings(new PortMapping()
