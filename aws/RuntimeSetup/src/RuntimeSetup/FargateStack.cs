@@ -24,13 +24,14 @@ namespace RuntimeSetup
             var idName = $"{envDetails.AppPrefix}-fg-AspNetCore-{envDetails.EnvSuffix}";
 
             var envName = envDetails.EnvSuffix;
+            var appName = envDetails.AppPrefix;
 
             var vpcId = $"fgvpc";
             var clusterId = $"fgcluster";
 
             var zoneName = "ibotsota.net";
             var domainName = $"fg-{envName}.{zoneName}";
-            var fargateIdName = $"{envDetails.AppPrefix}-fg-{envDetails.EnvSuffix}";
+            var fargateIdName = $"{appName}-fg-{envName}";
 
             var vpc = new Vpc(stack, vpcId, new VpcProps
             {
@@ -60,13 +61,17 @@ namespace RuntimeSetup
                     TaskImageOptions = new ApplicationLoadBalancedTaskImageOptions
                     {
                         Image = ContainerImage.FromAsset(@"..\..\departdir"),
+                        Environment = new Dictionary<string, string>()
+                        {
+                            { "Environment", envName }
+                        },
                     },
                     MemoryLimitMiB = 1024,      
                     Cpu = 256,
                     PublicLoadBalancer = true,    // Default is false
                     DomainZone = hostedZone,
                     Protocol = ApplicationProtocol.HTTPS,
-                    Certificate = new DnsValidatedCertificate(stack, $"cert-ibotsota-{envName}-fargate", new DnsValidatedCertificateProps()
+                    Certificate = new DnsValidatedCertificate(stack, $"cert-{appName}-{envName}-fargate", new DnsValidatedCertificateProps()
                     {
                         DomainName = domainName,
                         HostedZone = hostedZone
@@ -98,9 +103,10 @@ namespace RuntimeSetup
         public static FargateService Setup(Stack stack, SharedConstructs sharedConstructs, EnvironmentDetails envDetails,
             string buildNumber)
         {
-            var idName = $"{envDetails.AppPrefix}-fg-AspNetCore-{envDetails.EnvSuffix}";
-
+            var appName = envDetails.AppPrefix;
             var envName = envDetails.EnvSuffix;
+
+            var idName = $"{appName}-fg-AspNetCore-{envName}";
 
             //buildNumber ??= Constant.CustomBuildNumber;
 
@@ -127,7 +133,7 @@ namespace RuntimeSetup
             var hostedZone = sharedConstructs.HostedZone;
 
             var zoneName = hostedZone.ZoneName;
-            var fargateIdName = $"{envDetails.AppPrefix}-fg-{envDetails.EnvSuffix}";
+            var fargateIdName = $"{appName}-fg-{envName}";
 
             // Create a public IP Fargate service and make it public
             string fargateTaskId = "fg-task";
@@ -158,17 +164,17 @@ namespace RuntimeSetup
                 Image = ContainerImage.FromAsset(@"..\..\departdir"),
                 Logging = LogDriver.AwsLogs(new AwsLogDriverProps()
                 {
-                    LogGroup = new LogGroup(stack, $"fg-{envDetails.EnvSuffix}-log", new LogGroupProps()
+                    LogGroup = new LogGroup(stack, $"fg-{envName}-log", new LogGroupProps()
                     {
-                        LogGroupName = $"/aws/fargate/{envDetails.AppPrefix}-{envDetails.EnvSuffix}",
+                        LogGroupName = $"/aws/fargate/{appName}-{envName}",
                         Retention = RetentionDays.ONE_WEEK
                     }),
                     Mode = AwsLogDriverMode.NON_BLOCKING,
-                    StreamPrefix = $"{envDetails.AppPrefix}-{envDetails.EnvSuffix}"
+                    StreamPrefix = $"{appName}-{envName}"
                 }),
                 Environment = new Dictionary<string, string>()
                 {
-                    { "Environment", envDetails.EnvSuffix }
+                    { "Environment", envName }
                 },
             });
 
