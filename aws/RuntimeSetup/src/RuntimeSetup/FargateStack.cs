@@ -60,10 +60,6 @@ namespace RuntimeSetup
                     TaskImageOptions = new ApplicationLoadBalancedTaskImageOptions
                     {
                         Image = ContainerImage.FromAsset(@"..\..\departdir"),
-                        Environment = new Dictionary<string, string>()
-                        {
-                            { "Environment", envDetails.EnvSuffix }
-                        },
                     },
                     MemoryLimitMiB = 1024,      
                     Cpu = 256,
@@ -83,7 +79,8 @@ namespace RuntimeSetup
 
             var managedPolicyID = $"{idName}-Policy";
 
-            fargateService.TaskDefinition.TaskRole.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(stack, managedPolicyID, "arn:aws:iam::394301006475:policy/iBotSotA-OperatorPolicy"));
+            var taskDefinition = fargateService.TaskDefinition;
+            taskDefinition.TaskRole.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(stack, managedPolicyID, "arn:aws:iam::394301006475:policy/iBotSotA-OperatorPolicy"));
 
             var cNameID = $"cname-{domainName}";
             var route53 = new CnameRecord(stack, cNameID, new CnameRecordProps()
@@ -168,7 +165,11 @@ namespace RuntimeSetup
                     }),
                     Mode = AwsLogDriverMode.NON_BLOCKING,
                     StreamPrefix = $"{envDetails.AppPrefix}-{envDetails.EnvSuffix}"
-                })
+                }),
+                Environment = new Dictionary<string, string>()
+                {
+                    { "Environment", envDetails.EnvSuffix }
+                },
             });
 
             container.AddPortMappings(new PortMapping()
