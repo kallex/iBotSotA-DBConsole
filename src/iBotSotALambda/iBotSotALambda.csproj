@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AWSProjectType>Lambda</AWSProjectType>
     <!-- This property makes the build directory similar to a publish directory and helps the AWS .NET Lambda Mock Test Tool find project dependencies. -->
@@ -9,14 +9,14 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="7.0.0" />
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="7.1.0" />
     <PackageReference Include="Anemonis.AspNetCore.RequestDecompression" Version="1.10.0" />
     <PackageReference Include="AWSSDK.SimpleSystemsManagement" Version="3.7.11.1" />
     <PackageReference Include="AWSXRayRecorder" Version="2.10.1" />
     <PackageReference Include="DryIoc.dll" Version="4.8.4" />
     <PackageReference Include="DryIoc.Microsoft.DependencyInjection" Version="5.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.ResponseCompression" Version="2.2.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AWSDataService\AWSDataService.csproj" />

@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.1.1" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.8.4" />
-    <PackageReference Include="AWSSDK.TimestreamQuery" Version="3.7.1.1" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.3.13" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.8.10" />
+    <PackageReference Include="AWSSDK.TimestreamQuery" Version="3.7.2.2" />
     <PackageReference Include="AWSSDK.TimestreamWrite" Version="3.7.1.1" />
     <PackageReference Include="AWSXRayRecorder" Version="2.10.1" />
   </ItemGroup>

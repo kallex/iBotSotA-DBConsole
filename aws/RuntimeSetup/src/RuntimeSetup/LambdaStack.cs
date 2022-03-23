@@ -36,7 +36,7 @@ namespace RuntimeSetup
                 {
                     { "Environment", envDetails.EnvSuffix }
                 },
-                Runtime = Runtime.DOTNET_CORE_3_1,
+                Runtime = Runtime.DOTNET_6,
                 Code =  Code.FromBucket(bucket, lambdaPackageKey),
                 Handler = "iBotSotALambda::iBotSotALambda.LambdaEntryPoint::FunctionHandlerAsync",
                 Tracing = Tracing.ACTIVE,
