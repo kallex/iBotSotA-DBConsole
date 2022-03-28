@@ -19,7 +19,7 @@ namespace Services
             return (packedX, packedY, packedZ);
         }
 
-        public static (byte[] packedX, byte[] packedY, byte[] packedZ, byte[] packedW) CompressQuartenions(Quart4[] quartenions, double tolerance = 0.0)
+        public static (byte[] packedX, byte[] packedY, byte[] packedZ, byte[] packedW) CompressQuartenions(Quat4[] quartenions, double tolerance = 0.0)
         {
             var packedX = PackFloatArray(quartenions.Select(item => item.X), tolerance);
             var packedY = PackFloatArray(quartenions.Select(item => item.Y), tolerance);
@@ -50,17 +50,17 @@ namespace Services
             return vectors;
         }
 
-        public static Quart4[] DecompressQuartenions((byte[] packedX, byte[] packedY, byte[] packedZ, byte[] packedW) packedData, int originalQuartenionCount)
+        public static Quat4[] DecompressQuartenions((byte[] packedX, byte[] packedY, byte[] packedZ, byte[] packedW) packedData, int originalQuartenionCount)
         {
             var x = UnpackFloatArray(packedData.packedX, originalQuartenionCount);
             var y = UnpackFloatArray(packedData.packedY, originalQuartenionCount);
             var z = UnpackFloatArray(packedData.packedZ, originalQuartenionCount);
             var w = UnpackFloatArray(packedData.packedW, originalQuartenionCount);
 
-            var quartenions = new Quart4[originalQuartenionCount];
+            var quartenions = new Quat4[originalQuartenionCount];
             for (int i = 0; i < quartenions.Length; i++)
             {
-                var quart = new Quart4()
+                var quart = new Quat4()
                 {
                     X = x[i],
                     Y = y[i],

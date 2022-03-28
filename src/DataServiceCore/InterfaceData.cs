@@ -39,7 +39,7 @@ namespace DataServiceCore
         public DateTime TimeStamp { get; set; }
         public int FrameNumber { get; set; }
         public Vec3 Position { get; set; }
-        public Quart4 Rotation { get; set; }
+        public Quat4 Rotation { get; set; }
     }
 
     public class Vec3
@@ -49,7 +49,7 @@ namespace DataServiceCore
         public float Z { get; set; }
     }
 
-    public class Quart4
+    public class Quat4
     {
         public float X { get; set; }
         public float Y { get; set; }

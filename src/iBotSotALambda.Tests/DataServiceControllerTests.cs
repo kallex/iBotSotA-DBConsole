@@ -229,7 +229,7 @@ namespace iBotSotALambda.Tests
                                     Y = 2.0f,
                                     Z = 3.0f
                                 },
-                                Rotation = new Quart4()
+                                Rotation = new Quat4()
                                 {
                                     X = 10,
                                     Y = 20,
@@ -336,7 +336,7 @@ namespace iBotSotALambda.Tests
                                     Y = 2.0f,
                                     Z = 3.0f
                                 },
-                                Rotation = new Quart4()
+                                Rotation = new Quat4()
                                 {
                                     X = 10,
                                     Y = 20,
