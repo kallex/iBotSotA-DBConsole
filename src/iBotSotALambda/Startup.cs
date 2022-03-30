@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -103,6 +105,21 @@ namespace iBotSotALambda
                 app.UseResponseCompression();
             }
 
+            var currDir = env.ContentRootPath;
+            var uiPath = Path.Combine(currDir, "uibuild");
+
+            //DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
+            //defaultFilesOptions.DefaultFileNames.Clear();
+            //defaultFilesOptions.DefaultFileNames.Add("index.html");
+
+            //app.UseDefaultFiles(defaultFilesOptions);
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                RequestPath = "",
+                FileProvider = new PhysicalFileProvider(uiPath)
+            });
 
             app.UseRouting();
             app.UseAuthorization();
