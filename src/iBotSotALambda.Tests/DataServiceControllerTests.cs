@@ -19,6 +19,7 @@ using DryIoc;
 using iBotSotALambda.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using SteamServices;
+using Steamworks;
 using Xunit;
 using HexUtil = iBotSotALambda.Controllers.HexUtil;
 
@@ -251,6 +252,27 @@ namespace iBotSotALambda.Tests
 
 
             var result = await controller.SubmitMatchDataFunc(authDataHex, matchData);
+        }
+
+        [Fact]
+        public async Task GetMatchDataTest()
+        {
+            var container = new Container();
+            container.Register<IDiagnosticService, NoOpDiagnosticService>(Reuse.Singleton);
+            container.Register<ISteamService, SteamService>(Reuse.Singleton);
+            container.Register<IMatchDataService, DynamoDBDataService>(Reuse.Singleton);
+
+            var steamService = container.Resolve<ISteamService>();
+            steamService.InitService(SteamAppId, SteamWebApiKey);
+            steamService.InitSteamClient();
+
+            var matchDataService = container.Resolve<IMatchDataService>();
+
+            var controller = new DataServiceController(steamService, matchDataService);
+
+            var steamId = SteamClient.SteamId;
+
+            var actionResult = await controller.GetMatchDataFunc(steamId.ToString());
         }
 
         [Fact]

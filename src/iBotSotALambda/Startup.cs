@@ -107,18 +107,17 @@ namespace iBotSotALambda
 
             var currDir = env.ContentRootPath;
             var uiPath = Path.Combine(currDir, "uibuild");
+            var fileProvider = new PhysicalFileProvider(uiPath);
 
-            //DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
-            //defaultFilesOptions.DefaultFileNames.Clear();
-            //defaultFilesOptions.DefaultFileNames.Add("index.html");
+            DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
+            defaultFilesOptions.DefaultFileNames.Clear();
+            defaultFilesOptions.DefaultFileNames.Add("index.html");
+            defaultFilesOptions.FileProvider = fileProvider;
 
-            //app.UseDefaultFiles(defaultFilesOptions);
-
-            app.UseDefaultFiles();
+            app.UseDefaultFiles(defaultFilesOptions);
             app.UseStaticFiles(new StaticFileOptions()
             {
-                RequestPath = "",
-                FileProvider = new PhysicalFileProvider(uiPath)
+                FileProvider = fileProvider
             });
 
             app.UseRouting();

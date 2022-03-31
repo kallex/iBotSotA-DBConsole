@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime.Internal;
 using Amazon.S3.Model;
 using DataServiceCore;
 using Services;
@@ -20,7 +22,7 @@ namespace AWSDataServices
         {
 
             var dynamoClient = new AmazonDynamoDBClient(Config.CurrentRegion);
-            matchData.AccountID = $"STM:{matchData.ClientInfo.SteamId}";
+            matchData.AccountID = getAccountID(matchData.ClientInfo.SteamId.ToString());
             var matchID = Guid.NewGuid().ToString("N");
             matchData.ItemID = matchID;
 
@@ -54,6 +56,38 @@ namespace AWSDataServices
                     InputStream = memStream
                 });
             }
+        }
+
+        public async Task<string> GetMatchData(string steamId)
+        {
+            var accountID = getAccountID(steamId);
+            var dynamoClient = new AmazonDynamoDBClient(Config.CurrentRegion);
+            var runtimeEnvironment = ServiceCore.GetRuntimeEnvironment();
+            var tableName = $"ibotsota-Account-{runtimeEnvironment}";
+
+            var queryResponse = await dynamoClient.QueryAsync(new QueryRequest(tableName)
+                {
+                    KeyConditionExpression = $"AccountID=:accountID",
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                    {
+                        { ":accountID", new AttributeValue(accountID) }
+                    },
+                });
+            
+            var resultItems = queryResponse.Items;
+
+            var matchDataJsons = resultItems.Select(item => Document.FromAttributeMap(item).ToJson()).ToArray();
+
+            var jsonCombined = String.Join(", ", matchDataJsons);
+
+            var matchDatas = $"{{ \"MatchDatas\": [ {jsonCombined} ] }}";
+
+            return matchDatas;
+        }
+
+        private string getAccountID(string steamId)
+        {
+            return $"STM:{steamId}";
         }
     }
 }

@@ -56,7 +56,6 @@ namespace iBotSotALambda.Controllers
             return new AcceptedResult();
         }
 
-
         [HttpGet]
         public async Task<ActionResult> GetSteamAuthentication([FromQuery] string authDataHex)
         {
@@ -71,5 +70,19 @@ namespace iBotSotALambda.Controllers
                 authResult.publisherBanned
             });
         }
+
+        [HttpGet]
+        public async Task<ActionResult> GetMatchData([FromQuery] string steamId)
+        {
+            var result = await GetMatchDataFunc(steamId);
+            return result;
+        }
+
+        public async Task<ActionResult> GetMatchDataFunc(string steamId)
+        {
+            var result = await MatchDataService.GetMatchData(steamId);
+            return new JsonResult(result);
+        }
+
     }
 }

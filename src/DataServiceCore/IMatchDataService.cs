@@ -7,5 +7,6 @@ namespace Services
     public interface IMatchDataService
     {
         Task StoreMatchData(MatchData matchData);
+        Task<string> GetMatchData(string steamId);
     }
 }

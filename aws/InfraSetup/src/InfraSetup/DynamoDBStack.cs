@@ -34,6 +34,7 @@ namespace InfraSetup
                     BillingMode = BillingMode.PROVISIONED,
                     RemovalPolicy = RemovalPolicy.RETAIN,
                     PointInTimeRecovery = true,
+                    ContributorInsightsEnabled = true
                 });
             }
         }
